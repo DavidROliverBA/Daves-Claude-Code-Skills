@@ -22,45 +22,33 @@ Agent teams are groups of parallel sub-agents launched via Claude Code's `Task` 
 
 The mechanism is straightforward: Claude Code's `Task` tool can launch multiple sub-agents simultaneously. Each sub-agent is a complete Claude instance with its own context, tools, and instructions. Sub-agents cannot communicate with each other — they only communicate with the coordinator through their return values.
 
-```
-                    ┌─────────────────────────────┐
-                    │     User invokes /skill      │
-                    └──────────────┬──────────────┘
-                                   │
-                    ┌──────────────▼──────────────┐
-                    │   Phase 1: COORDINATOR       │
-                    │   Gathers input, parses      │
-                    │   arguments, reads files,    │
-                    │   prepares agent prompts     │
-                    └──────────────┬──────────────┘
-                                   │
-               ┌───────────────────┼───────────────────┐
-               │                   │                   │
-    ┌──────────▼──────────┐ ┌─────▼──────────┐ ┌─────▼──────────┐
-    │  Phase 2: AGENT 1   │ │  AGENT 2       │ │  AGENT N       │
-    │  (Task tool)        │ │  (Task tool)   │ │  (Task tool)   │
-    │                     │ │                │ │                │
-    │  Own context window │ │  Own context   │ │  Own context   │
-    │  Own tool access    │ │  Own tools     │ │  Own tools     │
-    │  Reads files        │ │  Reads files   │ │  Reads files   │
-    │  Analyses data      │ │  Analyses data │ │  Analyses data │
-    │                     │ │                │ │                │
-    │  Returns: structured│ │  Returns: data │ │  Returns: data │
-    └──────────┬──────────┘ └─────┬──────────┘ └─────┬──────────┘
-               │                   │                   │
-               └───────────────────┼───────────────────┘
-                                   │
-                    ┌──────────────▼──────────────┐
-                    │   Phase 3: COORDINATOR       │
-                    │   Collects all agent results │
-                    │   Synthesises into unified   │
-                    │   output, resolves conflicts │
-                    │   Presents to user           │
-                    └──────────────┬──────────────┘
-                                   │
-                    ┌──────────────▼──────────────┐
-                    │     Output to user           │
-                    └─────────────────────────────┘
+```mermaid
+flowchart TD
+    A[User invokes /skill] --> B
+
+    subgraph p1 ["Phase 1: Setup"]
+        B["COORDINATOR<br>Gathers input, parses arguments,<br>reads files, prepares agent prompts"]
+    end
+
+    B --> C1
+    B --> C2
+    B --> CN
+
+    subgraph p2 ["Phase 2: Parallel Execution"]
+        C1["Agent 1 — Task tool<br>Own context window<br>Own tool access<br>Returns: structured data"]
+        C2["Agent 2 — Task tool<br>Own context window<br>Own tool access<br>Returns: structured data"]
+        CN["Agent N — Task tool<br>Own context window<br>Own tool access<br>Returns: structured data"]
+    end
+
+    C1 --> D
+    C2 --> D
+    CN --> D
+
+    subgraph p3 ["Phase 3: Synthesis"]
+        D["COORDINATOR<br>Collects all agent results,<br>synthesises unified output,<br>resolves conflicts"]
+    end
+
+    D --> E[Output to user]
 ```
 
 **Key properties of agent teams:**
@@ -101,35 +89,25 @@ Three orchestration patterns cover nearly all agent team use cases in this colle
 
 The most common pattern. Multiple agents analyse different dimensions of the **same input** in parallel, then the coordinator synthesises their results into a unified report.
 
-```
-                         ┌───────────────┐
-                         │  COORDINATOR   │
-                         │  Prepares      │
-                         │  shared input  │
-                         └───────┬───────┘
-                                 │
-           ┌─────────────────────┼─────────────────────┐
-           │                     │                     │
-┌──────────▼──────────┐ ┌───────▼────────┐ ┌──────────▼──────────┐
-│  Agent 1: Technical  │ │ Agent 2: Cost  │ │ Agent 3: Risk       │
-│  Impact (Sonnet)     │ │ Analysis       │ │ Assessment          │
-│                      │ │ (Sonnet)       │ │ (Sonnet)            │
-│  Reads same systems  │ │ Reads same     │ │ Reads same          │
-│  Analyses tech angle │ │ data, analyses │ │ data, analyses      │
-│                      │ │ financial angle│ │ risk angle          │
-│  Returns: tech matrix│ │ Returns: costs │ │ Returns: risk       │
-│  with severity       │ │ with breakdown │ │ register            │
-└──────────┬──────────┘ └───────┬────────┘ └──────────┬──────────┘
-           │                     │                     │
-           └─────────────────────┼─────────────────────┘
-                                 │
-                         ┌───────▼───────┐
-                         │  COORDINATOR   │
-                         │  Combines all  │
-                         │  dimensions    │
-                         │  into unified  │
-                         │  report        │
-                         └───────────────┘
+```mermaid
+flowchart TD
+    C1["COORDINATOR<br>Prepares shared input"]
+
+    C1 --> A1
+    C1 --> A2
+    C1 --> A3
+
+    subgraph agents ["Parallel Agents — Sonnet"]
+        A1["Agent 1: Technical Impact<br>Analyses tech angle<br>Returns: tech matrix with severity"]
+        A2["Agent 2: Cost Analysis<br>Analyses financial angle<br>Returns: costs with breakdown"]
+        A3["Agent 3: Risk Assessment<br>Analyses risk angle<br>Returns: risk register"]
+    end
+
+    A1 --> C2
+    A2 --> C2
+    A3 --> C2
+
+    C2["COORDINATOR<br>Combines all dimensions<br>into unified report"]
 ```
 
 **Characteristics:**
@@ -160,34 +138,31 @@ The most common pattern. Multiple agents analyse different dimensions of the **s
 
 Used when the **same operation** needs to run on many items. Items are divided into equal-sized batches and each batch is processed by an independent agent.
 
-```
-                         ┌────────────────┐
-                         │  COORDINATOR    │
-                         │  Divides 100    │
-                         │  notes into    │
-                         │  5 batches     │
-                         └───────┬────────┘
-                                 │
-     ┌───────────────────────────┼───────────────────────────┐
-     │              │            │            │               │
-┌────▼────┐  ┌─────▼────┐ ┌────▼─────┐ ┌───▼─────┐  ┌──────▼─────┐
-│ Agent 1  │  │ Agent 2  │ │ Agent 3  │ │ Agent 4 │  │ Agent 5    │
-│ Notes    │  │ Notes    │ │ Notes    │ │ Notes   │  │ Notes      │
-│ 1-20     │  │ 21-40    │ │ 41-60    │ │ 61-80   │  │ 81-100     │
-│ (Haiku)  │  │ (Haiku)  │ │ (Haiku)  │ │ (Haiku) │  │ (Haiku)    │
-│          │  │          │ │          │ │         │  │            │
-│ Tag each │  │ Tag each │ │ Tag each │ │ Tag each│  │ Tag each   │
-│ note     │  │ note     │ │ note     │ │ note    │  │ note       │
-└────┬─────┘  └────┬─────┘ └────┬─────┘ └───┬────┘  └──────┬─────┘
-     │              │            │            │               │
-     └───────────────────────────┼───────────────────────────┘
-                                 │
-                         ┌───────▼────────┐
-                         │  COORDINATOR    │
-                         │  Combines all   │
-                         │  batch results  │
-                         │  Deduplicates   │
-                         └────────────────┘
+```mermaid
+flowchart TD
+    C1["COORDINATOR<br>Divides 100 notes into 5 batches"]
+
+    C1 --> A1
+    C1 --> A2
+    C1 --> A3
+    C1 --> A4
+    C1 --> A5
+
+    subgraph agents ["Parallel Batch Agents — Haiku"]
+        A1["Agent 1<br>Notes 1–20<br>Tag each note"]
+        A2["Agent 2<br>Notes 21–40<br>Tag each note"]
+        A3["Agent 3<br>Notes 41–60<br>Tag each note"]
+        A4["Agent 4<br>Notes 61–80<br>Tag each note"]
+        A5["Agent 5<br>Notes 81–100<br>Tag each note"]
+    end
+
+    A1 --> C2
+    A2 --> C2
+    A3 --> C2
+    A4 --> C2
+    A5 --> C2
+
+    C2["COORDINATOR<br>Combines all batch results<br>Deduplicates"]
 ```
 
 **Characteristics:**
@@ -208,52 +183,41 @@ Used when the **same operation** needs to run on many items. Items are divided i
 
 A two-phase pattern for large lists where only some items are worth deep analysis. Phase 1 uses fast, cheap agents to score everything; Phase 2 uses more capable agents only on high-scoring items.
 
-```
-    Phase 1: TRIAGE (fast, cheap)
-                         ┌────────────────┐
-                         │  COORDINATOR    │
-                         │  Sends 20       │
-                         │  videos to      │
-                         │  triage agents  │
-                         └───────┬────────┘
-                                 │
-           ┌─────────────────────┼─────────────────────┐
-           │                     │                     │
-┌──────────▼──────────┐ ┌───────▼────────┐ ┌──────────▼──────────┐
-│  Triage Agent 1      │ │ Triage Agent 2 │ │ Triage Agent N      │
-│  Videos 1-7 (Haiku)  │ │ Videos 8-14    │ │ Videos 15-20        │
-│                      │ │ (Haiku)        │ │ (Haiku)             │
-│  Quick-score 1-10    │ │ Quick-score    │ │ Quick-score         │
-│  per video           │ │                │ │                     │
-└──────────┬──────────┘ └───────┬────────┘ └──────────┬──────────┘
-           │                     │                     │
-           └──────────filter: score ≥ 7────────────────┘
-                                 │
-    Phase 2: DEEP PROCESSING (selective, expensive)
-                                 │
-                    ┌────────────▼────────────┐
-                    │  Only 5 of 20 videos    │
-                    │  scored ≥ 7             │
-                    └────────────┬────────────┘
-                                 │
-              ┌──────────────────┼──────────────────┐
-              │                  │                  │
-   ┌──────────▼──────┐ ┌────────▼────────┐ ┌──────▼──────────┐
-   │  Deep Agent 1    │ │ Deep Agent 2    │ │ Deep Agent 3    │
-   │  Video A         │ │ Video B         │ │ Video C ...     │
-   │  (Sonnet)        │ │ (Sonnet)        │ │ (Sonnet)        │
-   │  Full transcript │ │ Full transcript │ │ Full transcript │
-   │  + deep analysis │ │ + deep analysis │ │ + deep analysis │
-   └─────────┬────────┘ └────────┬────────┘ └──────┬──────────┘
-              │                  │                  │
-              └──────────────────┼──────────────────┘
-                                 │
-                    ┌────────────▼────────────┐
-                    │  COORDINATOR             │
-                    │  Triage table + deep     │
-                    │  analyses + cross-theme  │
-                    │  synthesis               │
-                    └─────────────────────────┘
+```mermaid
+flowchart TD
+    C1["COORDINATOR<br>Sends 20 videos to triage"]
+
+    C1 --> T1
+    C1 --> T2
+    C1 --> TN
+
+    subgraph triage ["Phase 1: Triage — Haiku"]
+        T1["Triage Agent 1<br>Videos 1–7<br>Quick-score 1–10"]
+        T2["Triage Agent 2<br>Videos 8–14<br>Quick-score 1–10"]
+        TN["Triage Agent N<br>Videos 15–20<br>Quick-score 1–10"]
+    end
+
+    T1 --> F
+    T2 --> F
+    TN --> F
+
+    F{"Filter: score ≥ 7<br>5 of 20 pass"}
+
+    F --> D1
+    F --> D2
+    F --> D3
+
+    subgraph deep ["Phase 2: Deep Processing — Sonnet"]
+        D1["Deep Agent 1<br>Video A<br>Full transcript + analysis"]
+        D2["Deep Agent 2<br>Video B<br>Full transcript + analysis"]
+        D3["Deep Agent 3<br>Video C<br>Full transcript + analysis"]
+    end
+
+    D1 --> C2
+    D2 --> C2
+    D3 --> C2
+
+    C2["COORDINATOR<br>Triage table + deep analyses<br>+ cross-theme synthesis"]
 ```
 
 **Characteristics:**
@@ -323,14 +287,13 @@ Choosing the right model for each agent is critical for balancing cost, speed, a
 
 More agents means more overhead (prompt construction, result parsing, synthesis complexity) without proportional benefit. Beyond 5 agents, the coordinator's synthesis phase becomes the bottleneck.
 
-```
-Agents    Speedup     Synthesis Complexity
-  2         ~1.8x       Low
-  3         ~2.5x       Low
-  4         ~3.2x       Medium
-  5         ~3.8x       Medium
-  6+        ~4.0x       High (diminishing returns)
-```
+| Agents | Speedup | Synthesis Complexity |
+|--------|---------|---------------------|
+| 2 | ~1.8x | Low |
+| 3 | ~2.5x | Low |
+| 4 | ~3.2x | Medium |
+| 5 | ~3.8x | Medium |
+| 6+ | ~4.0x | High (diminishing returns) |
 
 If you need to cover more than 5 dimensions, consider grouping related dimensions into a single agent (e.g., "security and compliance" rather than two separate agents).
 
@@ -538,33 +501,24 @@ The coordinator makes 5 simultaneous `Task` tool calls. Each agent receives:
 - The specific analysis instructions for its dimension
 - The expected return format
 
+```mermaid
+flowchart TD
+    C["Coordinator (Sonnet)"]
+
+    C --> A1["Agent 1<br>Readability Analyst"]
+    C --> A2["Agent 2<br>Link Density Analyst"]
+    C --> A3["Agent 3<br>Metadata Completeness"]
+    C --> A4["Agent 4<br>Structure Completeness"]
+    C --> A5["Agent 5<br>Freshness & Tags"]
 ```
-Coordinator (Sonnet)
-  ├── Task: Agent 1 — Readability Analyst (Sonnet)
-  │   "Read these 25 ADR files. For each, extract body text,
-  │    calculate Flesch Reading Ease, score 0-100.
-  │    Return: { filename, readabilityScore, gradeLevel, issues[] }"
-  │
-  ├── Task: Agent 2 — Link Density Analyst (Sonnet)
-  │   "Read these 25 ADR files. Count outgoing wiki-links,
-  │    build backlink index, identify orphans.
-  │    Return: { filename, linkScore, outgoing, backlinks, isOrphan }"
-  │
-  ├── Task: Agent 3 — Metadata Completeness Analyst (Sonnet)
-  │   "Parse frontmatter of these 25 ADRs. Check for required fields:
-  │    type, title, created, status, deciders. Score 0-100.
-  │    Return: { filename, metadataScore, missingRequired[], missingRecommended[] }"
-  │
-  ├── Task: Agent 4 — Structure Completeness Analyst (Sonnet)
-  │   "Read these 25 ADRs. Check for expected sections: Context, Decision,
-  │    Rationale, Consequences, Alternatives. Score 0-100.
-  │    Return: { filename, structureScore, missingSections[], emptySections[] }"
-  │
-  └── Task: Agent 5 — Freshness & Tag Analyst (Sonnet)
-      "Check modification dates and tags for these 25 ADRs.
-       Categorise freshness. Score 0-100.
-       Return: { filename, freshnessScore, daysSinceUpdate, tagCount, tagIssues[] }"
-```
+
+| Agent | Task | Return Format |
+|-------|------|---------------|
+| **Readability** | Read 25 ADRs, calculate Flesch Reading Ease, score 0–100 | `{ filename, readabilityScore, gradeLevel, issues[] }` |
+| **Link Density** | Count outgoing wiki-links, build backlink index, identify orphans | `{ filename, linkScore, outgoing, backlinks, isOrphan }` |
+| **Metadata** | Parse frontmatter, check required fields (type, title, created, status, deciders), score 0–100 | `{ filename, metadataScore, missingRequired[], missingRecommended[] }` |
+| **Structure** | Check expected sections (Context, Decision, Rationale, Consequences, Alternatives), score 0–100 | `{ filename, structureScore, missingSections[], emptySections[] }` |
+| **Freshness & Tags** | Check modification dates, categorise freshness, validate tags, score 0–100 | `{ filename, freshnessScore, daysSinceUpdate, tagCount, tagIssues[] }` |
 
 ### Step 4: Agents Execute in Parallel
 
@@ -680,10 +634,9 @@ MCP tools (Notion, YouTube, Diagrams, and other MCP server integrations) are **n
 
 **Workaround:** The coordinator must call MCP tools before launching agents, then pass the fetched data as part of the agent prompt.
 
-```
-Phase 1: Coordinator fetches data via MCP (YouTube transcript, Notion page, etc.)
-Phase 2: Coordinator passes fetched data as context to sub-agents
-Phase 3: Sub-agents analyse the pre-fetched data (no MCP calls needed)
+```mermaid
+flowchart LR
+    P1["Phase 1<br>Coordinator fetches<br>data via MCP"] --> P2["Phase 2<br>Passes fetched data<br>as context to agents"] --> P3["Phase 3<br>Sub-agents analyse<br>pre-fetched data"]
 ```
 
 ---
