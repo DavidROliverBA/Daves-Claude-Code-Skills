@@ -21,7 +21,7 @@ Quick-reference card for all 37 skills across 8 categories. For detailed agent t
 
 | Skill | Command | Agents | Model | Description |
 |-------|---------|--------|-------|-------------|
-| [PDF Extract](../skills/content-processing/pdf-extract.md) | `/pdf-extract` | — | Sonnet | Extract structured content from PDFs preserving headings, tables, and formatting |
+| [PDF Extract](../skills/content-processing/pdf-extract.md) | `/pdf-extract` | — | Sonnet | Extract structured content from PDFs with optional [docling](https://github.com/docling-project/docling) support for native table recognition |
 | [PPTX Extract](../skills/content-processing/pptx-extract.md) | `/pptx-extract` | — | Sonnet | Convert PowerPoint slides to structured Markdown with speaker notes |
 | [YouTube Analyze](../skills/content-processing/youtube-analyze.md) | `/youtube-analyze` | — | Sonnet | Analyse videos via transcripts with timestamped summaries and key takeaways |
 | [Video Digest](../skills/content-processing/video-digest.md) | `/video-digest` | N | Sonnet | Batch-triage videos by relevance (Haiku), then deeply process the best (Sonnet) |

@@ -43,7 +43,7 @@ Skills for extracting and structuring content from PDFs, presentations, videos, 
 
 | Skill | Command | Agents | Description |
 |-------|---------|--------|-------------|
-| [PDF Extract](skills/content-processing/pdf-extract.md) | `/pdf-extract` | — | Extract structured content from PDFs preserving headings, tables, and formatting |
+| [PDF Extract](skills/content-processing/pdf-extract.md) | `/pdf-extract` | — | Extract structured content from PDFs with optional [docling](https://github.com/docling-project/docling) support for native table recognition |
 | [PPTX Extract](skills/content-processing/pptx-extract.md) | `/pptx-extract` | — | Convert PowerPoint slides to structured Markdown with speaker notes |
 | [YouTube Analyze](skills/content-processing/youtube-analyze.md) | `/youtube-analyze` | — | Analyse videos via transcripts with timestamped summaries and key takeaways |
 | [Video Digest](skills/content-processing/video-digest.md) | `/video-digest` | N | Batch-triage videos by relevance (Haiku), then deeply process the best (Sonnet) |
