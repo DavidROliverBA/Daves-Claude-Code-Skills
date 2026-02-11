@@ -96,11 +96,23 @@ After all elements are declared, list relationships following the same left-to-r
 
 ### Step 3: Specify Styling
 
-Use the C4 colour scheme so the visual hierarchy reinforces the architecture:
+The C4 model no longer prescribes a specific colour scheme -- Simon Brown intentionally removed it so teams can choose colours that work for their context. But you still need colour to reinforce the visual hierarchy. As Jacqui Read writes in *Communication Patterns*, **colour should encode meaning, not just decorate**.
 
-- Persons: `#08427B` (dark blue)
-- Containers: `#438DD5` (medium blue)
-- External systems: `#999999` (grey)
+Her key principles for diagram styling:
+
+- **Use colour to distinguish element types**, not to make things look pretty. If persons, containers, and external systems all look the same, the reader loses a quick visual shorthand for "what kind of thing is this?"
+- **Ensure sufficient contrast.** Roughly 8% of men have some form of colour vision deficiency. Do not rely on hue alone -- vary lightness and saturation so elements remain distinguishable in greyscale.
+- **Be consistent across a diagram set.** If persons are dark blue on the Context diagram, they must be dark blue on the Container diagram. Inconsistency forces readers to re-learn the visual language on every page.
+- **Visually recede what is outside your scope.** External systems and third-party services should be muted (grey or desaturated) so the reader's eye is drawn to what you control.
+
+A practical colour set that follows these principles:
+
+- **Persons:** Dark, saturated (e.g., `#08427B`) -- the starting point of every interaction
+- **Your containers:** Medium saturation (e.g., `#438DD5`) -- the system under discussion
+- **External systems:** Grey or desaturated (e.g., `#999999`) -- outside your control, visually recedes
+- **System boundary:** Subtle background (e.g., light grey `#F5F5F5` with border) -- groups without competing
+
+The specific hex values matter less than the principle: **your system should be visually prominent, external dependencies should recede, and every colour distinction should mean something**.
 
 ### Step 4: Set Constraints
 
@@ -135,7 +147,8 @@ Relationships (in flow order):
 
 Requirements:
 - Use flowchart LR
-- Apply C4 colours (persons: #08427B, containers: #438DD5, external: #999999)
+- Colour by element type: persons dark/saturated, containers medium, external grey/muted
+- External systems should visually recede; your system should be prominent
 - Maximum 2 edge crossings
 - Group services in a subgraph boundary
 - Declare ALL elements before ANY relationships
