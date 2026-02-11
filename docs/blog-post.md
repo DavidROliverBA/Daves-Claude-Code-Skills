@@ -221,6 +221,33 @@ To install, copy the skill `.md` files to your `.claude/skills/` directory. Then
 
 The difference between a terrible AI diagram and a good one is not asking for "cleaner." It is understanding that declaration order controls layout, and telling the AI exactly which order you want.
 
+## References
+
+**Research**
+
+- Purchase, H.C., McGill, M., Colpoys, L. and Carrington, D. (2001). [Graph Drawing Aesthetics and the Comprehension of UML Class Diagrams: An Empirical Study](https://www.semanticscholar.org/paper/Graph-Drawing-Aesthetics-and-the-Comprehension-of-Purchase-McGill/527ca0518fca9efdbea27c8a3289a4c8d67e22f6). The foundational study establishing edge crossings as the strongest predictor of diagram comprehension difficulty.
+- Huang, W., Eades, P. and Hong, S.H. (2014). [Larger crossing angles make graphs easier to read](https://www.sciencedirect.com/science/article/abs/pii/S1045926X14000317). When crossings are unavoidable, 90-degree angles are easier to parse than acute angles.
+- Sugiyama, K., Tagawa, S. and Toda, M. (1981). [Methods for Visual Understanding of Hierarchical System Structures](https://en.wikipedia.org/wiki/Layered_graph_drawing). The original layered graph drawing algorithm used by PlantUML and GraphViz.
+
+**Handbooks**
+
+- Healy, P. and Nikolov, N.S. (2013). [Hierarchical Drawing Algorithms](https://cs.brown.edu/people/rtamassi/gdhandbook/chapters/hierarchical.pdf). Chapter 13 of Handbook of Graph Drawing and Visualization. Detailed treatment of the Sugiyama algorithm's four stages.
+- Kobourov, S.G. (2013). [Force-Directed Drawing Algorithms](https://cs.brown.edu/people/rtamassi/gdhandbook/chapters/force-directed.pdf). Chapter 12 of Handbook of Graph Drawing and Visualization. Alternative layout approach used by some tools.
+
+**C4 Model**
+
+- Brown, S. (2011-present). [The C4 model for visualising software architecture](https://c4model.com/). The four-level abstraction model (Context, Container, Component, Code) referenced throughout this article.
+
+**Tools**
+
+- [Mermaid Layouts documentation](https://mermaid.js.org/config/layouts.html). How Mermaid's Dagre algorithm handles element positioning.
+- [C4-PlantUML](https://github.com/plantuml-stdlib/C4-PlantUML). The PlantUML library providing C4 macros, directional hints, and layout control.
+
+**Communication**
+
+- Read, J. (2023). [Communication Patterns: A Guide for Developers and Architects](https://communicationpatternsbook.com). O'Reilly Media. Audience-first approach to technical communication, including diagram design.
+- Nielsen Norman Group. [Proximity Principle in Visual Design](https://www.nngroup.com/articles/gestalt-proximity/). Practical application of Gestalt proximity to interface and diagram layout.
+
 ---
 
 *David Oliver is a Solutions Architect at British Airways, working in Operations and Engineering IT. He builds knowledge management systems with Obsidian and Claude Code, and is unreasonably passionate about making architecture diagrams legible.*
