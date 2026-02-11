@@ -44,12 +44,12 @@ Skills for extracting and structuring content from PDFs, presentations, videos, 
 | Skill | Command | Agents | Description |
 |-------|---------|--------|-------------|
 | [PDF Extract](skills/content-processing/pdf-extract.md) | `/pdf-extract` | — | Extract structured content from PDFs with optional [docling](https://github.com/docling-project/docling) support for native table recognition |
-| [PPTX Extract](skills/content-processing/pptx-extract.md) | `/pptx-extract` | — | Convert PowerPoint slides to structured Markdown with speaker notes |
+| [PPTX Extract](skills/content-processing/pptx-extract.md) | `/pptx-extract` | — | Convert PowerPoint slides to Markdown with docling/python-pptx dual extraction and Visual Mode |
 | [YouTube Analyze](skills/content-processing/youtube-analyze.md) | `/youtube-analyze` | — | Analyse videos via transcripts with timestamped summaries and key takeaways |
 | [Video Digest](skills/content-processing/video-digest.md) | `/video-digest` | N | Batch-triage videos by relevance (Haiku), then deeply process the best (Sonnet) |
 | [Weblink](skills/content-processing/weblink.md) | `/weblink` | — | Quick web page capture with AI-generated summary |
 | [Article](skills/content-processing/article.md) | `/article` | — | Quick article capture with summary, key quotes, and relevance scoring |
-| [Book Notes](skills/content-processing/book-notes.md) | `/book-notes` | 3 | Create book notes with parallel extraction of concepts, frameworks, and actions |
+| [Book Notes](skills/content-processing/book-notes.md) | `/book-notes` | 3 | Create book notes with parallel extraction and optional knowledge compounding via spawned Concept/Pattern/Theme notes |
 | [Document Extract](skills/content-processing/document-extract.md) | `/document-extract` | — | Extract from any format (PDF, DOCX, HTML, CSV) with auto-detection |
 
 ## Diagramming (3 skills)
@@ -68,12 +68,12 @@ Skills for measuring and improving the quality of a Markdown knowledge vault. Al
 
 | Skill | Command | Agents | Description |
 |-------|---------|--------|-------------|
-| [Quality Report](skills/vault-health/quality-report.md) | `/quality-report` | 5 | Comprehensive quality metrics: readability, links, metadata, structure, freshness |
+| [Quality Report](skills/vault-health/quality-report.md) | `/quality-report` | 5 | Comprehensive quality metrics with Flesch readability formulas, link density scoring, and type-aware freshness thresholds |
 | [Broken Links](skills/vault-health/broken-links.md) | `/broken-links` | 3 | Find broken wiki-links, heading anchors, and missing attachment references |
 | [Orphan Finder](skills/vault-health/orphan-finder.md) | `/orphan-finder` | 4 | Detect disconnected notes and suggest meaningful connections |
-| [Auto-Tag](skills/vault-health/auto-tag.md) | `/auto-tag` | N | Batch auto-tag notes with hierarchical tags from content analysis |
-| [Auto-Summary](skills/vault-health/auto-summary.md) | `/auto-summary` | N | Batch-generate one-line `summary` fields for notes missing them |
-| [Link Checker](skills/vault-health/link-checker.md) | `/link-checker` | N | Validate external HTTP/HTTPS URLs for dead links, redirects, and timeouts |
+| [Auto-Tag](skills/vault-health/auto-tag.md) | `/auto-tag` | N | Batch auto-tag notes using type-based rules and customisable keyword-to-tag mapping tables |
+| [Auto-Summary](skills/vault-health/auto-summary.md) | `/auto-summary` | N | Batch-generate one-line `summary` fields with type-specific patterns and quality validation rules |
+| [Link Checker](skills/vault-health/link-checker.md) | `/link-checker` | N | Validate external URLs with curl-based checking, frontmatter status tracking, and cross-reference verification |
 
 ## Scoring (2 skills)
 
@@ -81,7 +81,7 @@ Skills for evaluating documents against rubrics and generating stakeholder-ready
 
 | Skill | Command | Agents | Description |
 |-------|---------|--------|-------------|
-| [Score Document](skills/scoring/score-document.md) | `/score-document` | 4 | Score documents against customisable rubrics (0-3, 0-5, or 0-10) with evidence |
+| [Score Document](skills/scoring/score-document.md) | `/score-document` | 4 | Score documents against customisable rubrics with optional SQLite persistence for querying and multi-scorer comparison |
 | [Exec Summary](skills/scoring/exec-summary.md) | `/exec-summary` | — | Generate executive summaries tailored to CEO, CTO, board, or PM audiences |
 
 ## Reporting (2 skills)
@@ -121,38 +121,17 @@ Skills for discovering, connecting, and visualising knowledge across a vault.
 
 17 of the 37 skills use **agent teams** — parallel sub-agents launched via Claude Code's `Task` tool. Each agent runs independently in its own context window, analyses one dimension of the problem, and returns structured results. The coordinator synthesises everything into a unified output.
 
-```
-                         ┌─────────────────┐
-                         │  User invokes    │
-                         │  /skill          │
-                         └────────┬────────┘
-                                  │
-                         ┌────────▼────────┐
-                         │  COORDINATOR     │
-                         │  Gathers input,  │
-                         │  prepares agent  │
-                         │  prompts         │
-                         └────────┬────────┘
-                                  │
-            ┌─────────────────────┼─────────────────────┐
-            │                     │                     │
- ┌──────────▼──────────┐ ┌───────▼───────┐ ┌───────────▼─────────┐
- │  Agent 1 (Sonnet)    │ │  Agent 2      │ │  Agent N            │
- │  Dimension A         │ │  Dimension B  │ │  Dimension N        │
- │  e.g. Technical      │ │  e.g. Cost    │ │  e.g. Risk          │
- │                      │ │               │ │                     │
- │  Returns: structured │ │  Returns: data│ │  Returns: data      │
- └──────────┬──────────┘ └───────┬───────┘ └───────────┬─────────┘
-            │                     │                     │
-            └─────────────────────┼─────────────────────┘
-                                  │
-                         ┌────────▼────────┐
-                         │  COORDINATOR     │
-                         │  Synthesises all │
-                         │  agent results   │
-                         │  into unified    │
-                         │  output          │
-                         └─────────────────┘
+```mermaid
+flowchart TD
+    User["/skill invoked"] --> Coord1["COORDINATOR\nGathers input, prepares agent prompts"]
+
+    Coord1 --> A1["Agent 1 · Sonnet\nDimension A\ne.g. Technical"]
+    Coord1 --> A2["Agent 2 · Sonnet\nDimension B\ne.g. Cost"]
+    Coord1 --> AN["Agent N · Sonnet\nDimension N\ne.g. Risk"]
+
+    A1 --> Coord2["COORDINATOR\nSynthesises all agent results\ninto unified output"]
+    A2 --> Coord2
+    AN --> Coord2
 ```
 
 ### Three Orchestration Patterns

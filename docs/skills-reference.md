@@ -22,12 +22,12 @@ Quick-reference card for all 37 skills across 8 categories. For detailed agent t
 | Skill | Command | Agents | Model | Description |
 |-------|---------|--------|-------|-------------|
 | [PDF Extract](../skills/content-processing/pdf-extract.md) | `/pdf-extract` | — | Sonnet | Extract structured content from PDFs with optional [docling](https://github.com/docling-project/docling) support for native table recognition |
-| [PPTX Extract](../skills/content-processing/pptx-extract.md) | `/pptx-extract` | — | Sonnet | Convert PowerPoint slides to structured Markdown with speaker notes |
+| [PPTX Extract](../skills/content-processing/pptx-extract.md) | `/pptx-extract` | — | Sonnet | Convert PowerPoint slides to Markdown with docling/python-pptx dual extraction and Visual Mode |
 | [YouTube Analyze](../skills/content-processing/youtube-analyze.md) | `/youtube-analyze` | — | Sonnet | Analyse videos via transcripts with timestamped summaries and key takeaways |
 | [Video Digest](../skills/content-processing/video-digest.md) | `/video-digest` | N | Sonnet | Batch-triage videos by relevance (Haiku), then deeply process the best (Sonnet) |
 | [Weblink](../skills/content-processing/weblink.md) | `/weblink` | — | Haiku | Quick web page capture with AI-generated summary |
 | [Article](../skills/content-processing/article.md) | `/article` | — | Haiku | Quick article capture with summary, key quotes, and relevance scoring |
-| [Book Notes](../skills/content-processing/book-notes.md) | `/book-notes` | 3 | Sonnet | Create book notes with parallel concept, framework, and action extraction |
+| [Book Notes](../skills/content-processing/book-notes.md) | `/book-notes` | 3 | Sonnet | Create book notes with parallel extraction and optional knowledge compounding via spawned Concept/Pattern/Theme notes |
 | [Document Extract](../skills/content-processing/document-extract.md) | `/document-extract` | — | Sonnet | Extract from any format (PDF, DOCX, HTML, CSV) with auto-detection |
 
 ## Diagramming (3 skills)
@@ -44,18 +44,18 @@ For the theory behind the diagramming skills, see [Why Your AI-Generated Diagram
 
 | Skill | Command | Agents | Model | Description |
 |-------|---------|--------|-------|-------------|
-| [Quality Report](../skills/vault-health/quality-report.md) | `/quality-report` | 5 | Sonnet | Comprehensive quality metrics: readability, links, metadata, structure, freshness |
+| [Quality Report](../skills/vault-health/quality-report.md) | `/quality-report` | 5 | Sonnet | Comprehensive quality metrics with Flesch readability formulas, link density scoring, and type-aware freshness thresholds |
 | [Broken Links](../skills/vault-health/broken-links.md) | `/broken-links` | 3 | Sonnet | Find broken wiki-links, heading anchors, and missing attachment references |
 | [Orphan Finder](../skills/vault-health/orphan-finder.md) | `/orphan-finder` | 4 | Sonnet | Detect disconnected notes and suggest meaningful connections |
-| [Auto-Tag](../skills/vault-health/auto-tag.md) | `/auto-tag` | N | Haiku | Batch auto-tag notes with hierarchical tags from content analysis |
-| [Auto-Summary](../skills/vault-health/auto-summary.md) | `/auto-summary` | N | Haiku | Batch-generate one-line `summary` fields for notes missing them |
-| [Link Checker](../skills/vault-health/link-checker.md) | `/link-checker` | N | Haiku | Validate external HTTP/HTTPS URLs for dead links, redirects, and timeouts |
+| [Auto-Tag](../skills/vault-health/auto-tag.md) | `/auto-tag` | N | Haiku | Batch auto-tag notes using type-based rules and customisable keyword-to-tag mapping tables |
+| [Auto-Summary](../skills/vault-health/auto-summary.md) | `/auto-summary` | N | Haiku | Batch-generate one-line `summary` fields with type-specific patterns and quality validation rules |
+| [Link Checker](../skills/vault-health/link-checker.md) | `/link-checker` | N | Haiku | Validate external URLs with curl-based checking, frontmatter status tracking, and cross-reference verification |
 
 ## Scoring (2 skills)
 
 | Skill | Command | Agents | Model | Description |
 |-------|---------|--------|-------|-------------|
-| [Score Document](../skills/scoring/score-document.md) | `/score-document` | 4 | Sonnet | Score documents against customisable rubrics (0-3, 0-5, or 0-10) with evidence |
+| [Score Document](../skills/scoring/score-document.md) | `/score-document` | 4 | Sonnet | Score documents against customisable rubrics with optional SQLite persistence for querying and multi-scorer comparison |
 | [Exec Summary](../skills/scoring/exec-summary.md) | `/exec-summary` | — | Sonnet | Generate executive summaries tailored to CEO, CTO, board, or PM audiences |
 
 ## Reporting (2 skills)
