@@ -204,7 +204,7 @@ And here is a real-world example -- an AI-powered incident management platform d
 
 | Context Diagram | Container Diagram |
 |---|---|
-| ![Real-world context diagram](../examples/diagramming/images/07-dispax-context.png) | ![Real-world container diagram](../examples/diagramming/images/08-dispax-container.png) |
+| ![Real-world context diagram](../examples/diagramming/images/07-context-diagram.png) | ![Real-world container diagram](../examples/diagramming/images/08-container-diagram.png) |
 
 *A production system with 8-9 elements per diagram, mixed relationship directions, multiple data stores, and zero crossings at both levels.*
 

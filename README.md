@@ -168,7 +168,7 @@ All examples include rendered diagram screenshots:
 |---|---|---|
 | ![Bad order](examples/diagramming/images/03-bad-declaration-order.png) | ![Good order](examples/diagramming/images/04-good-declaration-order.png) | ![Context](examples/diagramming/images/05-good-context-diagram.png) |
 | Bad declaration order | Good declaration order | C4 Context |
-| ![Container](examples/diagramming/images/02-good-structured-container.png) | ![Component](examples/diagramming/images/06-good-component-diagram.png) | ![Real-world](examples/diagramming/images/07-dispax-context.png) |
+| ![Container](examples/diagramming/images/02-good-structured-container.png) | ![Component](examples/diagramming/images/06-good-component-diagram.png) | ![Real-world](examples/diagramming/images/07-context-diagram.png) |
 | C4 Container | C4 Component | Real-world Context |
 
 ---
