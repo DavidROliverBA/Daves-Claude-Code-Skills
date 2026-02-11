@@ -8,6 +8,9 @@ So you try again. "Make it cleaner." The AI shuffles some things around and prod
 
 This is the experience of almost every architect and developer using AI tools to generate diagrams. The problem is not the AI. The problem is that you are giving it instructions the layout algorithm cannot act on.
 
+![What you get when you ask AI to "generate a C4 diagram" without structure](../examples/diagramming/images/01-bad-chaos-diagram.png)
+*What you typically get: 15 elements, random declaration order, relationships crossing everywhere.*
+
 ## The Science Nobody Tells You About
 
 There is actual peer-reviewed research on what makes diagrams readable, and almost nobody in the AI tooling space talks about it.
@@ -41,6 +44,12 @@ User, Web, API, Orders, Inventory, Notify, External, DB, Cache
 ```
 
 Same nine elements. Same twelve relationships. The only difference is declaration order. The second version produces a clean left-to-right flow with minimal crossings. The first produces chaos.
+
+| Bad: Random declaration order | Good: Tier-based declaration order |
+|---|---|
+| ![Bad declaration order](../examples/diagramming/images/03-bad-declaration-order.png) | ![Good declaration order](../examples/diagramming/images/04-good-declaration-order.png) |
+
+*Left: Database declared first, User declared last. Right: User declared first, Database declared last. Same elements, same relationships — only the declaration order changed.*
 
 ### Antipattern 2: Vague Refinement Requests
 
@@ -134,6 +143,11 @@ Requirements:
 
 This template works with Claude, ChatGPT, Copilot, and any other AI tool that generates Mermaid code. The key is that you are providing information the layout algorithm can use, not just describing what you want the output to look like.
 
+Here is what that template produces -- a clean C4 Container diagram with system boundary, tier-based layout, and zero crossings:
+
+![C4 Container diagram produced by the structured prompt](../examples/diagramming/images/02-good-structured-container.png)
+*The result: actors on the left, containers grouped in a system boundary, external systems on the right, clean left-to-right flow.*
+
 ## Fixing Crossings When They Happen
 
 Sometimes the first result still has crossings, even with a structured prompt. Do not regenerate the entire diagram. Make targeted requests.
@@ -164,6 +178,22 @@ When you have a crossing between two relationships in Mermaid and reordering dec
 **Use Mermaid for** quick sketches, markdown-embedded diagrams, and anything with fewer than 15 elements. It renders natively in Obsidian, GitHub, and most documentation platforms.
 
 **Use PlantUML for** formal documentation, diagrams with more than 15 elements, persistent crossings that Mermaid cannot resolve, and anything destined for PDF export.
+
+The same principles work at every C4 level. Here is a Context diagram (Level 1) and a Component diagram (Level 3), both following tier-based ordering:
+
+| C4 Context (Level 1) | C4 Component (Level 3) |
+|---|---|
+| ![C4 Context diagram](../examples/diagramming/images/05-good-context-diagram.png) | ![C4 Component diagram](../examples/diagramming/images/06-good-component-diagram.png) |
+
+*Left: Actors, system, external systems — the highest level of abstraction. Right: Controllers, services, repositories — internal components of a single container.*
+
+And here is a real-world example -- an AI-powered incident management platform diagrammed at Context and Container level:
+
+| Context Diagram | Container Diagram |
+|---|---|
+| ![Real-world context diagram](../examples/diagramming/images/07-dispax-context.png) | ![Real-world container diagram](../examples/diagramming/images/08-dispax-container.png) |
+
+*A production system with 8-9 elements per diagram, mixed relationship directions, multiple data stores, and zero crossings at both levels.*
 
 ## Automating All of This with Claude Code Skills
 
