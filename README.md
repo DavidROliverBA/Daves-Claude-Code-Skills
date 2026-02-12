@@ -1,8 +1,8 @@
 # Dave's Claude Code Skills
 
-A curated collection of [Claude Code](https://claude.ai/code) skills for software architecture, knowledge management, and engineering. Drop these `.md` files into your `.claude/skills/` directory and invoke them as slash commands.
+A curated collection of [Claude Code](https://claude.ai/code) skills and hooks for software architecture, knowledge management, and engineering. Drop `.md` files into `.claude/skills/` for slash commands, or `.py`/`.sh` scripts into your hooks directory for automated guardrails.
 
-**37 skills** across **8 categories**. **17 skills** use **agent teams** — parallel sub-agents launched via the Task tool that analyse different dimensions simultaneously, process batches at scale, or triage before deep-diving. The result: faster execution, more thorough analysis, and lower cost per insight.
+**37 skills** across **8 categories**. **17 skills** use **agent teams** — parallel sub-agents launched via the Task tool that analyse different dimensions simultaneously, process batches at scale, or triage before deep-diving. **12 hooks** across **5 categories** provide automated security, quality, and UX guardrails.
 
 ---
 
@@ -19,6 +19,7 @@ A curated collection of [Claude Code](https://claude.ai/code) skills for softwar
 | [Meetings](#meetings-3-skills) | 3 | 1 | Meeting notes, voice transcripts, email capture |
 | [Knowledge](#knowledge-5-skills) | 5 | 0 | Summarisation, related content, decisions, timelines |
 | **Total** | **37** | **17** | |
+| [**Hooks**](#hooks-12-hooks) | **12** | — | Security, quality, UX, safety, notifications |
 
 ---
 
@@ -240,6 +241,7 @@ After copying, invoke any skill in Claude Code:
 | [Agent Teams Guide](docs/agent-teams-guide.md) | How agent teams work: patterns, model selection, best practices, anti-patterns, worked example |
 | [Skills Reference](docs/skills-reference.md) | Quick-reference card: all skills by category, installation commands, model cost guide |
 | [Blog Post](docs/blog-post.md) | Why Your AI-Generated Diagrams Look Terrible — the graph drawing research behind the diagramming skills |
+| [Hooks Guide](docs/hooks/README.md) | Complete hooks documentation: lifecycle events, patterns, configuration, installation |
 
 ---
 
@@ -260,6 +262,52 @@ Built on three orchestration principles:
 - **Fan-Out/Fan-In for multi-dimensional analysis.** When evaluating something from multiple angles (technical, financial, risk), run agents in parallel and synthesise. Used by 13 skills.
 - **Batch Processing for scale.** When the same operation applies to many items, divide into batches and process in parallel with cost-effective Haiku agents. Used by 3 skills.
 - **Triage before deep processing.** When only some items are worth deep analysis, use fast agents to score first, then invest in expensive processing only for high-value items. Used by 1 skill.
+
+---
+
+## Hooks (12 hooks)
+
+Production-tested [Claude Code hooks](docs/hooks/README.md) that run automatically during your workflow — blocking secrets, validating content, formatting code, and providing contextual hints. No manual invocation required.
+
+### Hook Categories
+
+| Category | Hooks | Event | Description |
+|----------|-------|-------|-------------|
+| [Security](hooks/security/) | 3 | PreToolUse / UserPromptSubmit | Block secrets in prompts and file content, protect sensitive files |
+| [Quality](hooks/quality/) | 4 | PostToolUse | Validate frontmatter, enforce tag taxonomy, check wiki-links, verify filenames |
+| [UX](hooks/ux/) | 3 | PostToolUse / PreToolUse / UserPromptSubmit | Auto-format code, load context for skills, suggest faster search tools |
+| [Safety](hooks/safety/) | 1 | PreToolUse | Auto-allow safe bash commands to reduce permission prompts |
+| [Notification](hooks/notification/) | 1 | Stop | Desktop notifications when long tasks complete (macOS + Linux) |
+
+### Individual Hooks
+
+| Hook | File | Event | What It Does |
+|------|------|-------|-------------|
+| Secret Detection | [`secret-detection.py`](hooks/security/secret-detection.py) | UserPromptSubmit | Blocks prompts containing API keys, tokens, passwords (25 patterns) |
+| Secret File Scanner | [`secret-file-scanner.py`](hooks/security/secret-file-scanner.py) | PreToolUse (Edit\|Write) | Blocks file writes containing secrets |
+| File Protection | [`file-protection.py`](hooks/security/file-protection.py) | PreToolUse (Edit\|Write) | Prevents edits to sensitive files (.env, credentials, CI/CD configs) |
+| Frontmatter Validator | [`frontmatter-validator.py`](hooks/quality/frontmatter-validator.py) | PostToolUse (Edit\|Write) | Validates YAML frontmatter against configurable note type schemas |
+| Tag Taxonomy Enforcer | [`tag-taxonomy-enforcer.py`](hooks/quality/tag-taxonomy-enforcer.py) | PostToolUse (Edit\|Write) | Enforces hierarchical tag naming (e.g. `area/engineering` not `engineering`) |
+| Wiki-Link Checker | [`wiki-link-checker.py`](hooks/quality/wiki-link-checker.py) | PostToolUse (Edit\|Write) | Warns about broken `[[wiki-links]]` pointing to non-existent files |
+| Filename Convention | [`filename-convention-checker.py`](hooks/quality/filename-convention-checker.py) | PostToolUse (Edit\|Write) | Validates filenames match note type conventions |
+| Code Formatter | [`code-formatter.py`](hooks/ux/code-formatter.py) | PostToolUse (Edit\|Write) | Auto-formats files using Prettier, Black, gofmt, rustfmt, or shfmt |
+| Context Loader | [`context-loader.sh`](hooks/ux/context-loader.sh) | UserPromptSubmit | Auto-loads relevant `.claude/context/` files based on skill commands |
+| Search Hint | [`search-hint.sh`](hooks/ux/search-hint.sh) | PreToolUse (Grep) | Suggests faster search alternatives for simple keyword patterns |
+| Bash Safety | [`bash-safety.py`](hooks/safety/bash-safety.py) | PreToolUse (Bash) | Auto-allows safe commands (ls, git status, npm test) to reduce prompts |
+| Desktop Notify | [`desktop-notify.sh`](hooks/notification/desktop-notify.sh) | Stop | Sends macOS/Linux desktop notifications when Claude completes work |
+
+### Quick Start
+
+```bash
+# Copy all hooks
+mkdir -p hooks/
+cp -r hooks/ your-project/hooks/
+
+# Add to .claude/settings.json (or settings.local.json)
+# See docs/hooks/installation.md for full setup guide
+```
+
+For detailed documentation: **[Hooks Guide](docs/hooks/README.md)** | [Lifecycle](docs/hooks/hook-lifecycle.md) | [Patterns](docs/hooks/hook-patterns.md) | [Configuration](docs/hooks/configuration.md) | [Installation](docs/hooks/installation.md)
 
 ---
 

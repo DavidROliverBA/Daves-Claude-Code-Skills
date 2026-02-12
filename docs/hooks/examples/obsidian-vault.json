@@ -1,0 +1,88 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 hooks/security/secret-file-scanner.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 hooks/security/file-protection.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 hooks/security/dangerous-bash-blocker.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 hooks/security/sandbox-override-warner.py"
+          }
+        ]
+      },
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 hooks/security/secret-detection.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 hooks/quality/frontmatter-validator.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 hooks/quality/tag-taxonomy-enforcer.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 hooks/quality/wiki-link-checker.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 hooks/quality/filename-convention-checker.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 hooks/automation/backup-trigger.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 hooks/automation/code-formatter.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 hooks/automation/auto-commit-trigger.py"
+          }
+        ]
+      }
+    ]
+  }
+}
