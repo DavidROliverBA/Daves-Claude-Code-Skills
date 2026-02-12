@@ -1,21 +1,25 @@
 {
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 hooks/security/secret-detection.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "python3 hooks/security/file-protection.py"
-          }
-        ]
-      },
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 hooks/security/secret-detection.py"
+            "command": "python3 hooks/security/file-protection.py",
+            "timeout": 5
           }
         ]
       }

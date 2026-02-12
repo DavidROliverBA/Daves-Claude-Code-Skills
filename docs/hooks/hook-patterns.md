@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
 **Exit code:** 0 (always)
 
-**Examples:** backup-trigger.py, auto-commit-trigger.py
+**Examples:** context-loader.sh, desktop-notify.sh
 
 ---
 

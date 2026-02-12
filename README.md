@@ -269,6 +269,35 @@ Built on three orchestration principles:
 
 Production-tested [Claude Code hooks](docs/hooks/README.md) that run automatically during your workflow — blocking secrets, validating content, formatting code, and providing contextual hints. No manual invocation required.
 
+### How Hooks Work
+
+```
+User submits prompt
+  |
+  v
+[UserPromptSubmit hooks]        -- secret-detection.py scans for API keys
+  |                              -- context-loader.sh injects skill context
+  v
+Claude generates tool call
+  |
+  v
+[PreToolUse hooks]              -- file-protection.py blocks .env edits
+  |                              -- secret-file-scanner.py blocks secret writes
+  v                              -- search-hint.sh suggests faster tools
+Tool executes (if not blocked)   -- bash-safety.py auto-allows safe commands
+  |
+  v
+[PostToolUse hooks]             -- frontmatter-validator.py checks YAML
+  |                              -- tag-taxonomy-enforcer.py validates tags
+  v                              -- wiki-link-checker.py finds broken links
+Response shown to user           -- filename-convention-checker.py checks names
+  |                              -- code-formatter.py auto-formats code
+  v
+[Stop hook]                     -- desktop-notify.sh sends notification
+```
+
+**Exit codes:** `0` = allow | `1` = warn (show message, continue) | `2` = block (prevent tool execution)
+
 ### Hook Categories
 
 | Category | Hooks | Event | Description |
@@ -276,36 +305,129 @@ Production-tested [Claude Code hooks](docs/hooks/README.md) that run automatical
 | [Security](hooks/security/) | 3 | PreToolUse / UserPromptSubmit | Block secrets in prompts and file content, protect sensitive files |
 | [Quality](hooks/quality/) | 4 | PostToolUse | Validate frontmatter, enforce tag taxonomy, check wiki-links, verify filenames |
 | [UX](hooks/ux/) | 3 | PostToolUse / PreToolUse / UserPromptSubmit | Auto-format code, load context for skills, suggest faster search tools |
-| [Safety](hooks/safety/) | 1 | PreToolUse | Auto-allow safe bash commands to reduce permission prompts |
-| [Notification](hooks/notification/) | 1 | Stop | Desktop notifications when long tasks complete (macOS + Linux) |
+| [Safety](hooks/safety/) | 1 | PermissionRequest | Auto-allow safe bash commands to reduce permission prompts |
+| [Notification](hooks/notification/) | 1 | Notification (Stop) | Desktop notifications when long tasks complete (macOS + Linux) |
 
 ### Individual Hooks
 
 | Hook | File | Event | What It Does |
 |------|------|-------|-------------|
-| Secret Detection | [`secret-detection.py`](hooks/security/secret-detection.py) | UserPromptSubmit | Blocks prompts containing API keys, tokens, passwords (25 patterns) |
-| Secret File Scanner | [`secret-file-scanner.py`](hooks/security/secret-file-scanner.py) | PreToolUse (Edit\|Write) | Blocks file writes containing secrets |
-| File Protection | [`file-protection.py`](hooks/security/file-protection.py) | PreToolUse (Edit\|Write) | Prevents edits to sensitive files (.env, credentials, CI/CD configs) |
-| Frontmatter Validator | [`frontmatter-validator.py`](hooks/quality/frontmatter-validator.py) | PostToolUse (Edit\|Write) | Validates YAML frontmatter against configurable note type schemas |
-| Tag Taxonomy Enforcer | [`tag-taxonomy-enforcer.py`](hooks/quality/tag-taxonomy-enforcer.py) | PostToolUse (Edit\|Write) | Enforces hierarchical tag naming (e.g. `area/engineering` not `engineering`) |
-| Wiki-Link Checker | [`wiki-link-checker.py`](hooks/quality/wiki-link-checker.py) | PostToolUse (Edit\|Write) | Warns about broken `[[wiki-links]]` pointing to non-existent files |
-| Filename Convention | [`filename-convention-checker.py`](hooks/quality/filename-convention-checker.py) | PostToolUse (Edit\|Write) | Validates filenames match note type conventions |
-| Code Formatter | [`code-formatter.py`](hooks/ux/code-formatter.py) | PostToolUse (Edit\|Write) | Auto-formats files using Prettier, Black, gofmt, rustfmt, or shfmt |
-| Context Loader | [`context-loader.sh`](hooks/ux/context-loader.sh) | UserPromptSubmit | Auto-loads relevant `.claude/context/` files based on skill commands |
-| Search Hint | [`search-hint.sh`](hooks/ux/search-hint.sh) | PreToolUse (Grep) | Suggests faster search alternatives for simple keyword patterns |
-| Bash Safety | [`bash-safety.py`](hooks/safety/bash-safety.py) | PreToolUse (Bash) | Auto-allows safe commands (ls, git status, npm test) to reduce prompts |
-| Desktop Notify | [`desktop-notify.sh`](hooks/notification/desktop-notify.sh) | Stop | Sends macOS/Linux desktop notifications when Claude completes work |
+| Secret Detection | [`secret-detection.py`](hooks/security/secret-detection.py) | UserPromptSubmit | Scans prompts for API keys, tokens, passwords, and connection strings (25 regex patterns). Blocks before Claude sees the secret. |
+| Secret File Scanner | [`secret-file-scanner.py`](hooks/security/secret-file-scanner.py) | PreToolUse (Edit\|Write) | Scans file content being written for embedded secrets. Catches hardcoded credentials that slip into code. |
+| File Protection | [`file-protection.py`](hooks/security/file-protection.py) | PreToolUse (Edit\|Write) | Blocks edits to `.env`, `.key`, `credentials.json`, CI/CD configs, and lockfiles. Configurable allow-list for safe directories. |
+| Frontmatter Validator | [`frontmatter-validator.py`](hooks/quality/frontmatter-validator.py) | PostToolUse (Edit\|Write) | Validates YAML frontmatter against configurable note type schemas. Checks required fields, valid values, and date formats. |
+| Tag Taxonomy Enforcer | [`tag-taxonomy-enforcer.py`](hooks/quality/tag-taxonomy-enforcer.py) | PostToolUse (Edit\|Write) | Enforces hierarchical tag naming (`area/engineering` not `engineering`). Configurable taxonomy with approved flat tags. |
+| Wiki-Link Checker | [`wiki-link-checker.py`](hooks/quality/wiki-link-checker.py) | PostToolUse (Edit\|Write) | Warns about broken `[[wiki-links]]` by scanning the vault for matching files. Supports aliases and type prefixes. |
+| Filename Convention | [`filename-convention-checker.py`](hooks/quality/filename-convention-checker.py) | PostToolUse (Edit\|Write) | Validates filenames match note type conventions (e.g. `Meeting - 2026-01-15 Title.md`). Checks prefix, casing, and location. |
+| Code Formatter | [`code-formatter.py`](hooks/ux/code-formatter.py) | PostToolUse (Edit\|Write) | Auto-formats files after edit using the right tool: Prettier (JS/TS/CSS), Black (Python), gofmt, rustfmt, or shfmt. |
+| Context Loader | [`context-loader.sh`](hooks/ux/context-loader.sh) | UserPromptSubmit | Detects skill commands (e.g. `/meeting`, `/adr`) and auto-loads relevant `.claude/context/` files so Claude has domain knowledge. |
+| Search Hint | [`search-hint.sh`](hooks/ux/search-hint.sh) | PreToolUse (Grep) | When Claude uses Grep for simple keyword searches, suggests faster alternatives like SQLite FTS or dedicated search indexes. |
+| Bash Safety | [`bash-safety.py`](hooks/safety/bash-safety.py) | PermissionRequest (Bash) | Auto-allows safe read-only commands (`ls`, `git status`, `npm test`, `cat`) so you don't get prompted for every harmless command. |
+| Desktop Notify | [`desktop-notify.sh`](hooks/notification/desktop-notify.sh) | Notification (Stop) | Sends macOS/Linux desktop notification with sound when Claude finishes a long task. Never miss a completed response again. |
 
-### Quick Start
+### Quick Start — Copy-Paste Configuration
+
+**1. Copy hooks to your project:**
 
 ```bash
-# Copy all hooks
-mkdir -p hooks/
-cp -r hooks/ your-project/hooks/
-
-# Add to .claude/settings.json (or settings.local.json)
-# See docs/hooks/installation.md for full setup guide
+cp -r hooks/ your-project/
 ```
+
+**2. Add to `.claude/settings.json` (or `settings.local.json`):**
+
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {"type": "command", "command": "python3 hooks/security/secret-detection.py", "timeout": 10},
+          {"type": "command", "command": "hooks/ux/context-loader.sh", "timeout": 5}
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {"type": "command", "command": "python3 hooks/security/file-protection.py", "timeout": 5},
+          {"type": "command", "command": "python3 hooks/security/secret-file-scanner.py", "timeout": 10}
+        ]
+      },
+      {
+        "matcher": "Grep",
+        "hooks": [
+          {"type": "command", "command": "hooks/ux/search-hint.sh", "timeout": 5}
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {"type": "command", "command": "python3 hooks/quality/frontmatter-validator.py", "timeout": 10},
+          {"type": "command", "command": "python3 hooks/quality/tag-taxonomy-enforcer.py", "timeout": 10},
+          {"type": "command", "command": "python3 hooks/quality/wiki-link-checker.py", "timeout": 15},
+          {"type": "command", "command": "python3 hooks/quality/filename-convention-checker.py", "timeout": 10},
+          {"type": "command", "command": "python3 hooks/ux/code-formatter.py", "timeout": 10}
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {"type": "command", "command": "python3 hooks/safety/bash-safety.py", "timeout": 5}
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "Stop",
+        "hooks": [
+          {"type": "command", "command": "hooks/notification/desktop-notify.sh"}
+        ]
+      }
+    ]
+  }
+}
+```
+
+**3. Pick only what you need:**
+
+```bash
+# Security only (recommended minimum)
+cp hooks/security/ your-project/hooks/ -r
+
+# Security + quality (Obsidian vaults)
+cp hooks/security/ hooks/quality/ your-project/hooks/ -r
+
+# Everything
+cp hooks/ your-project/ -r
+```
+
+### Customisation
+
+All hooks include `# Customise:` comments marking configurable sections:
+
+```python
+# Customise: Add your protected file patterns
+PROTECTED_PATTERNS = [r"\.env$", r".*\.key$", r"credentials\.json$"]
+
+# Customise: Add directories that are always safe to edit
+ALLOWED_DIRECTORIES = ["docs/", "tests/"]
+```
+
+| Hook | What to Customise |
+|------|-------------------|
+| file-protection.py | `PROTECTED_PATTERNS`, `ALLOWED_DIRECTORIES` |
+| frontmatter-validator.py | `NOTE_SCHEMAS` — add your note types and required fields |
+| tag-taxonomy-enforcer.py | `TAG_HIERARCHIES` — define your tag categories and values |
+| filename-convention-checker.py | `CONVENTIONS` — define filename patterns per note type |
+| secret-file-scanner.py | `SECRET_PATTERNS`, `SKIP_PATTERNS` |
+| context-loader.sh | Skill-to-context-file mapping |
+| bash-safety.py | `SAFE_COMMANDS` — commands to auto-allow |
 
 For detailed documentation: **[Hooks Guide](docs/hooks/README.md)** | [Lifecycle](docs/hooks/hook-lifecycle.md) | [Patterns](docs/hooks/hook-patterns.md) | [Configuration](docs/hooks/configuration.md) | [Installation](docs/hooks/installation.md)
 

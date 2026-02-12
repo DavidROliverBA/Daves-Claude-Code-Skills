@@ -4,21 +4,24 @@ Complete reference for configuring hooks in .
 
 ## Configuration File Location
 
-Hooks are configured in :
+Hooks are configured in `.claude/settings.json` or `.claude/settings.local.json`:
 
 ```
 /your-project/
 ├── .claude/
 │   └── settings.json    ← Add hook configuration here
 └── hooks/
-    ├── security/
-    ├── quality/
-    └── automation/
+    ├── security/        ← secret-detection.py, secret-file-scanner.py, file-protection.py
+    ├── quality/         ← frontmatter-validator.py, tag-taxonomy-enforcer.py, wiki-link-checker.py, filename-convention-checker.py
+    ├── ux/              ← code-formatter.py, context-loader.sh, search-hint.sh
+    ├── safety/          ← bash-safety.py
+    └── notification/    ← desktop-notify.sh
 ```
 
 ### Project vs Global Settings
 
-- **Project settings:**  (in project root)
+- **Project settings:** `.claude/settings.json` (in project root)
+- **Local settings:** `.claude/settings.local.json` (gitignored, per-machine overrides)
 - **Global settings:** `~/.claude/settings.json` (applies to all projects)
 
 Project settings override global settings for the same event/matcher.
@@ -100,27 +103,27 @@ Each hook in the `hooks` array:
 ```json
 {
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {"type": "command", "command": "python3 hooks/security/secret-detection.py", "timeout": 10},
+          {"type": "command", "command": "hooks/ux/context-loader.sh", "timeout": 5}
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Edit|Write",
         "hooks": [
-          {
-            "type": "command",
-            "command": "python3 hooks/security/secret-file-scanner.py"
-          },
-          {
-            "type": "command",
-            "command": "python3 hooks/security/file-protection.py"
-          }
+          {"type": "command", "command": "python3 hooks/security/file-protection.py", "timeout": 5},
+          {"type": "command", "command": "python3 hooks/security/secret-file-scanner.py", "timeout": 10}
         ]
       },
       {
-        "matcher": "Bash",
+        "matcher": "Grep",
         "hooks": [
-          {
-            "type": "command",
-            "command": "python3 hooks/security/dangerous-bash-blocker.py"
-          }
+          {"type": "command", "command": "hooks/ux/search-hint.sh", "timeout": 5}
         ]
       }
     ],
@@ -128,29 +131,27 @@ Each hook in the `hooks` array:
       {
         "matcher": "Edit|Write",
         "hooks": [
-          {
-            "type": "command",
-            "command": "python3 hooks/quality/frontmatter-validator.py"
-          },
-          {
-            "type": "command",
-            "command": "python3 hooks/quality/tag-taxonomy-enforcer.py"
-          },
-          {
-            "type": "command",
-            "command": "python3 hooks/automation/backup-trigger.py"
-          }
+          {"type": "command", "command": "python3 hooks/quality/frontmatter-validator.py", "timeout": 10},
+          {"type": "command", "command": "python3 hooks/quality/tag-taxonomy-enforcer.py", "timeout": 10},
+          {"type": "command", "command": "python3 hooks/quality/wiki-link-checker.py", "timeout": 15},
+          {"type": "command", "command": "python3 hooks/quality/filename-convention-checker.py", "timeout": 10},
+          {"type": "command", "command": "python3 hooks/ux/code-formatter.py", "timeout": 10}
         ]
       }
     ],
-    "Stop": [
+    "PermissionRequest": [
       {
-        "matcher": ".*",
+        "matcher": "Bash",
         "hooks": [
-          {
-            "type": "command",
-            "command": "python3 hooks/automation/session-backup.py"
-          }
+          {"type": "command", "command": "python3 hooks/safety/bash-safety.py", "timeout": 5}
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "Stop",
+        "hooks": [
+          {"type": "command", "command": "hooks/notification/desktop-notify.sh"}
         ]
       }
     ]

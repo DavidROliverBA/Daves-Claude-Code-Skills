@@ -36,11 +36,11 @@ If the test command exits 0, hooks are ready.
 Select hooks based on your use case:
 
 **Obsidian Vault:**
-- All 12 hooks (security, quality, automation)
+- All 12 hooks (security, quality, UX, safety, notification)
 - Configuration: `examples/obsidian-vault.json`
 
 **Python Project:**
-- Security hooks + code-formatter
+- Security + code formatting + bash safety + notification
 - Configuration: `examples/python-project.json`
 
 **Minimal Setup:**
@@ -68,18 +68,20 @@ cp -r hooks/quality/ /path/to/your-project/hooks/
 │   ├── security/
 │   │   ├── secret-detection.py
 │   │   ├── secret-file-scanner.py
-│   │   ├── file-protection.py
-│   │   ├── dangerous-bash-blocker.py
-│   │   └── sandbox-override-warner.py
+│   │   └── file-protection.py
 │   ├── quality/
 │   │   ├── frontmatter-validator.py
 │   │   ├── tag-taxonomy-enforcer.py
 │   │   ├── wiki-link-checker.py
 │   │   └── filename-convention-checker.py
-│   └── automation/
-│       ├── auto-commit-trigger.py
-│       ├── backup-trigger.py
-│       └── code-formatter.py
+│   ├── ux/
+│   │   ├── code-formatter.py
+│   │   ├── context-loader.sh
+│   │   └── search-hint.sh
+│   ├── safety/
+│   │   └── bash-safety.py
+│   └── notification/
+│       └── desktop-notify.sh
 └── [your project files]
 ```
 

@@ -1,38 +1,45 @@
 {
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 hooks/security/secret-detection.py",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "hooks/ux/context-loader.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "python3 hooks/security/secret-file-scanner.py"
+            "command": "python3 hooks/security/file-protection.py",
+            "timeout": 5
           },
           {
             "type": "command",
-            "command": "python3 hooks/security/file-protection.py"
+            "command": "python3 hooks/security/secret-file-scanner.py",
+            "timeout": 10
           }
         ]
       },
       {
-        "matcher": "Bash",
+        "matcher": "Grep",
         "hooks": [
           {
             "type": "command",
-            "command": "python3 hooks/security/dangerous-bash-blocker.py"
-          },
-          {
-            "type": "command",
-            "command": "python3 hooks/security/sandbox-override-warner.py"
-          }
-        ]
-      },
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 hooks/security/secret-detection.py"
+            "command": "hooks/ux/search-hint.sh",
+            "timeout": 5
           }
         ]
       }
@@ -43,43 +50,51 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 hooks/quality/frontmatter-validator.py"
+            "command": "python3 hooks/quality/frontmatter-validator.py",
+            "timeout": 10
           },
           {
             "type": "command",
-            "command": "python3 hooks/quality/tag-taxonomy-enforcer.py"
+            "command": "python3 hooks/quality/tag-taxonomy-enforcer.py",
+            "timeout": 10
           },
           {
             "type": "command",
-            "command": "python3 hooks/quality/wiki-link-checker.py"
+            "command": "python3 hooks/quality/wiki-link-checker.py",
+            "timeout": 15
           },
           {
             "type": "command",
-            "command": "python3 hooks/quality/filename-convention-checker.py"
+            "command": "python3 hooks/quality/filename-convention-checker.py",
+            "timeout": 10
           },
           {
             "type": "command",
-            "command": "python3 hooks/automation/backup-trigger.py"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 hooks/automation/code-formatter.py"
+            "command": "python3 hooks/ux/code-formatter.py",
+            "timeout": 10
           }
         ]
       }
     ],
-    "Stop": [
+    "PermissionRequest": [
       {
-        "matcher": ".*",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "python3 hooks/automation/auto-commit-trigger.py"
+            "command": "python3 hooks/safety/bash-safety.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "Stop",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "hooks/notification/desktop-notify.sh"
           }
         ]
       }

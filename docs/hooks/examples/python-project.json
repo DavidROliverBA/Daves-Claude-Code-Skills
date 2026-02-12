@@ -6,20 +6,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 hooks/security/secret-file-scanner.py"
+            "command": "python3 hooks/security/secret-file-scanner.py",
+            "timeout": 10
           },
           {
             "type": "command",
-            "command": "python3 hooks/security/file-protection.py"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 hooks/security/dangerous-bash-blocker.py"
+            "command": "python3 hooks/security/file-protection.py",
+            "timeout": 5
           }
         ]
       }
@@ -30,7 +23,31 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 hooks/automation/code-formatter.py"
+            "command": "python3 hooks/ux/code-formatter.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 hooks/safety/bash-safety.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "Stop",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "hooks/notification/desktop-notify.sh"
           }
         ]
       }
