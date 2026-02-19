@@ -1,13 +1,19 @@
+---
+name: c4-diagram
+context: fork
+skill: c4-diagram
+model: opus
+description: Generate C4 architecture diagrams from system notes
+tags: [activity/architecture, domain/tooling, type/diagram]
+---
+
 # /c4-diagram Skill
 
-<!-- Standalone skill: generates C4 architecture diagrams from user-provided parameters. -->
-<!-- Formats: Mermaid C4 (default), flowchart LR with C4 styling, PlantUML with directional hints. -->
-
-Generate C4 architecture diagrams (Mermaid, flowchart, or PlantUML) from user-provided system parameters.
+Generate C4 architecture diagrams (Mermaid, flowchart, or PlantUML) from System note frontmatter data.
 
 ## When to Use This Skill
 
-Use `/c4-diagram` when you need to generate C4 architecture diagrams from system information provided by the user. Supports three output formats: native Mermaid C4 (default), `flowchart LR` with C4 styling (more layout control), and PlantUML with directional hints (best for complex diagrams). Produces text-based diagrams that are Git-friendly and render inline in most Markdown editors.
+Use `/c4-diagram` when you need to generate C4 architecture diagrams from the structured `c4:` data stored in System note frontmatter. Supports three output formats: native Mermaid C4 (default), `flowchart LR` with C4 styling (more layout control), and PlantUML with directional hints (best for complex diagrams). This complements the `/diagram` skill (which generates Python `diagrams` PNGs) by producing text-based diagrams that are Git-friendly and render inline in Obsidian.
 
 ## Usage
 
@@ -17,79 +23,73 @@ Use `/c4-diagram` when you need to generate C4 architecture diagrams from system
 
 ### Arguments
 
-| Argument      | Required | Description                                                        |
-| ------------- | -------- | ------------------------------------------------------------------ |
-| `system-name` | Yes      | Name of the system (e.g., `MySystem`, `OrderService`, `DataHub`)   |
-| `level`       | No       | `context` (L1, default), `container` (L2), or `both`               |
-| `format`      | No       | `mermaid` (default), `flowchart`, or `plantuml`                     |
+| Argument      | Required | Description                                               |
+| ------------- | -------- | --------------------------------------------------------- |
+| `system-name` | Yes      | Name of the System note (e.g., `ODIE`, `AMOS`, `SAP BTP`) |
+| `level`       | No       | `context` (L1, default), `container` (L2), or `both`      |
+| `format`      | No       | `mermaid` (default), `flowchart`, or `plantuml`            |
 
 ### Format Options
 
 | Format       | Syntax Used                        | Best For                                           |
 | ------------ | ---------------------------------- | -------------------------------------------------- |
-| `mermaid`    | C4Context/C4Container native       | Clean inline rendering, <=10 elements (default)     |
+| `mermaid`    | C4Context/C4Container native       | Clean Obsidian rendering, ≤10 elements (default)    |
 | `flowchart`  | `flowchart LR` with classDef C4   | More layout control via declaration order           |
 | `plantuml`   | C4-PlantUML with directional hints | >15 elements, persistent crossings, formal docs     |
 
 **When to choose each format:**
 
-| Scenario                                 | Choose         | Reason                                              |
-| ---------------------------------------- | -------------- | --------------------------------------------------- |
-| Quick inline diagram in Markdown         | `mermaid`      | Native rendering, fast iteration                    |
-| Need layout control, <15 elements        | `flowchart`    | Declaration order gives more influence over Dagre    |
-| Complex layouts with persistent crossings| `plantuml`     | Directional hints (`Rel_Down`, `Lay_Right`) fix crossings |
-| >15 elements                             | `plantuml`     | Layout control prevents chaos at scale              |
-| Formal documentation, PDF export         | `plantuml`     | Better export quality, automatic legend             |
-| CI/CD or Structurizr pipeline            | `plantuml`     | Stable server-side rendering                        |
+| Scenario                              | Choose         | Reason                                              |
+| ------------------------------------- | -------------- | --------------------------------------------------- |
+| Quick inline diagram in Obsidian      | `mermaid`      | Native rendering, fast iteration                    |
+| Need layout control, <15 elements     | `flowchart`    | Declaration order gives more influence over Dagre    |
+| Complex layouts with persistent crossings | `plantuml` | Directional hints (`Rel_Down`, `Lay_Right`) fix crossings |
+| >15 elements                          | `plantuml`     | Layout control prevents chaos at scale              |
+| Formal documentation, PDF export      | `plantuml`     | Better export quality, automatic legend             |
+| CI/CD or Structurizr pipeline         | `plantuml`     | Stable server-side rendering                        |
 
 ### Examples
 
 ```
-/c4-diagram MySystem
-/c4-diagram InventorySystem container
-/c4-diagram PaymentGateway both
-/c4-diagram MySystem container flowchart
-/c4-diagram InventorySystem both plantuml
+/c4-diagram ODIE
+/c4-diagram AMOS container
+/c4-diagram SAP BTP both
+/c4-diagram ODIE container flowchart
+/c4-diagram AMOS both plantuml
 ```
 
 ## Instructions
 
-### Phase 1: Gather System Data
+### Phase 1: Read System Data
 
-Collect the following parameters from the user. If any required data is missing, prompt them to provide it before proceeding.
+1. Find the System note matching the name argument:
+   - Search for `System - <name>.md` in the vault root
+   - If not found, try graph query: `node scripts/graph-query.js --search "<name>" --type System`
 
-**Required parameters:**
+2. Read the note and extract the `c4:` frontmatter section. Required fields:
+   - `c4.actors` - People/roles (for Context diagram)
+   - `c4.containers` - Internal services (for Container diagram)
+   - `c4.externalRelationships` - External system connections
+   - `c4.internalRelationships` - Container-to-container connections
+   - `c4.description` - System description
+   - `c4.boundary` - Whether system is internal or external
 
-| Parameter                 | Description                                         | Example                                                       |
-| ------------------------- | --------------------------------------------------- | ------------------------------------------------------------- |
-| **System name**           | The name of the system being diagrammed             | `OrderService`                                                |
-| **System description**    | Brief purpose of the system (under 40 characters)   | `Manages customer orders`                                     |
-| **Actors**                | People or roles that interact with the system       | `Customer: Places orders`, `Admin: Manages catalogue`         |
-| **Containers** (for L2)  | Internal services, apps, databases within the system| `Web App (React): User interface`, `API (Node.js): REST API`  |
-| **External relationships**| Connections to systems outside the boundary          | `Sends emails via EmailService (SMTP, outgoing)`              |
-| **Internal relationships** (for L2) | Container-to-container connections        | `Web App calls API (HTTPS)`, `API reads from Database (SQL)`  |
+3. If `c4:` data is missing or empty, inform the user:
+   > This system note has no `c4:` data. Add C4 architecture data to the frontmatter first. See the System template for the schema.
 
-**Relationship direction convention:**
+### Phase 2: Generate Mermaid C4
 
-Each external relationship should specify a direction:
-- `outgoing` — the system sends data to the external system
-- `incoming` — the external system sends data to this system
-- `bidirectional` — data flows both ways
-
-If the user provides partial information, generate what you can and note any assumptions made.
-
-### Phase 2: Generate C4 Diagram
-
-Generate the diagram code following these **best practices**:
+Generate the Mermaid code following these **best practices**:
 
 #### General Rules
 
 - **Maximum 10 elements** per diagram (actors + systems + containers)
-- **Descriptions under 40 characters** — truncate if needed
-- **Use directional relationships** — `Rel_D` (down) for primary flow, `Rel_R` (right) for secondary
-- **Order**: Persons -> System Boundary -> External Systems -> Relationships -> Config
+- **Descriptions under 40 characters** - truncate if needed
+- **Use directional relationships** - `Rel_D` (down) for primary flow, `Rel_R` (right) for secondary
+- **Order**: Persons → System Boundary → External Systems → Relationships → Config
 - **Always include** `UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")` at the end
-- **Alias naming**: Use camelCase without spaces (e.g., `dataEngineer`, `paymentGateway`)
+- **Alias naming**: Use camelCase without spaces (e.g., `dataEngineer`, `sapS4hana`)
+- **Strip wiki-link syntax** from target names (e.g., `[[System - ODIE]]` → `ODIE`)
 
 #### Layout Science
 
@@ -106,25 +106,27 @@ Declaration order is the most important factor for readable diagrams. The Dagre/
 
 **Edge crossing targets:**
 
-| Diagram complexity       | Target crossings |
-| ------------------------ | ---------------- |
-| Simple (<=6 elements)    | 0                |
-| Medium (7-12 elements)   | <3               |
-| Complex (>12 elements)   | <5               |
+| Diagram complexity | Target crossings |
+| ------------------ | ---------------- |
+| Simple (≤6 elements) | 0              |
+| Medium (7–12 elements) | <3            |
+| Complex (>12 elements) | <5            |
 
 **Gestalt proximity** — use subgraphs/boundaries to group related elements. Elements placed close together are perceived as related (this overrides colour or shape similarity).
+
+> For full graph drawing theory (Sugiyama algorithm stages, barycentric method, Purchase et al. research), see `.claude/prompts/c4-mermaid-diagrams.md`.
 
 #### Prompt Antipatterns
 
 Avoid these when structuring the diagram code:
 
-| Antipattern                       | Why It Fails                            | Fix                                    |
-| --------------------------------- | --------------------------------------- | -------------------------------------- |
-| **Random element order**          | Algorithm starts from poor position     | Match declaration order to data flow   |
-| **Relationships before elements** | Layout has no starting positions        | Declare ALL elements before ANY relationships |
-| **Mixed abstraction levels**      | Database tables on a container diagram  | One abstraction level per diagram      |
-| **No crossing target**            | Accepts any layout                      | Set explicit crossing limit            |
-| **Vague "make it cleaner"**       | AI cannot act on vague instructions     | Specify which crossings to reduce      |
+| Antipattern                     | Why It Fails                            | Fix                                    |
+| ------------------------------- | --------------------------------------- | -------------------------------------- |
+| **Random element order**        | Algorithm starts from poor position     | Match declaration order to data flow   |
+| **Relationships before elements** | Layout has no starting positions      | Declare ALL elements before ANY relationships |
+| **Mixed abstraction levels**    | Database tables on a container diagram  | One abstraction level per diagram      |
+| **No crossing target**          | Accepts any layout                      | Set explicit crossing limit            |
+| **Vague "make it cleaner"**     | AI cannot act on vague instructions     | Specify which crossings to reduce      |
 
 #### C4 Context Diagram (Level 1)
 
@@ -134,24 +136,24 @@ Generate a `C4Context` diagram:
 C4Context
     title <System Name> - System Context
 
-    %% Actors
+    %% Actors (from c4.actors)
     Person(<alias>, "<name>", "<description>")
 
     %% The system itself
-    System(<sysAlias>, "<System Name>", "<system description>")
+    System(<sysAlias>, "<System Name>", "<c4.description>")
 
-    %% External systems (from external relationships)
+    %% External systems (from c4.externalRelationships targets)
     System_Ext(<alias>, "<target name>", "<brief description>")
 
     %% Relationships
-    %% Actor -> System
+    %% Actor → System (from c4.actors[].relationship)
     Rel_D(<actorAlias>, <sysAlias>, "<relationship>", "")
 
-    %% System -> External
-    %% Use direction based on relationship direction:
-    %%   outgoing -> Rel_D(system, ext, ...)
-    %%   incoming -> Rel_D(ext, system, ...)
-    %%   bidirectional -> Rel(system, ext, ...) (no direction suffix)
+    %% System → External (from c4.externalRelationships)
+    %% Use direction based on relationship.direction:
+    %%   outgoing → Rel_D(system, ext, ...)
+    %%   incoming → Rel_D(ext, system, ...)
+    %%   bidirectional → Rel(system, ext, ...) (no direction suffix)
     Rel_D(<sysAlias>, <extAlias>, "<description>", "<technology>")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
@@ -165,28 +167,29 @@ Generate a `C4Container` diagram:
 C4Container
     title <System Name> - Container Diagram
 
-    %% Key actors (pick top 2-3)
+    %% Key actors (pick top 2-3 from c4.actors)
     Person(<alias>, "<name>", "<description>")
 
     %% System boundary with containers
     System_Boundary(<boundaryAlias>, "<System Name>") {
+        %% From c4.containers
         %% Use Container for services, ContainerDb for databases
         Container(<alias>, "<name>", "<technology>", "<description>")
         ContainerDb(<alias>, "<name>", "<technology>", "<description>")
     }
 
-    %% External systems
+    %% External systems (from c4.externalRelationships)
     System_Ext(<alias>, "<target name>", "<brief description>")
 
-    %% Actor -> Container relationships
+    %% Actor → Container relationships
     Rel_D(<actorAlias>, <containerAlias>, "<action>", "<protocol>")
 
-    %% Internal relationships (container-to-container)
+    %% Internal relationships (from c4.internalRelationships)
     Rel(<sourceAlias>, <targetAlias>, "<description>", "<technology>")
 
-    %% External relationships
+    %% External relationships (from c4.externalRelationships)
     %% Connect to the specific container that owns the relationship
-    %% If unclear, connect to the integration layer or main container
+    %% If unclear, connect to the Integration Layer or main container
     Rel_D(<containerAlias>, <extAlias>, "<description>", "<technology>")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
@@ -257,6 +260,8 @@ flowchart LR
     class External1 external
 ```
 
+> For Component diagram flowchart template, see `.claude/prompts/c4-mermaid-diagrams.md`.
+
 #### PlantUML Context Diagram (format: `plantuml`)
 
 When using `plantuml` format, generate C4-PlantUML with directional hints:
@@ -303,11 +308,11 @@ System_Boundary(boundary, "System Name") {
 
 System_Ext(external1, "External Name", "What it provides")
 
-' Tier 1 -> Tier 2 (use Rel_Down for vertical hierarchy)
+' Tier 1 → Tier 2 (use Rel_Down for vertical hierarchy)
 Rel_Down(actor1, container1, "Uses", "Protocol")
 Rel_Down(container1, container2, "Calls", "Protocol")
 
-' Tier 2 -> Tier 3
+' Tier 2 → Tier 3
 Rel_Down(container2, database1, "Reads/writes", "SQL")
 
 ' Horizontal to external (use Rel_Right to prevent crossings)
@@ -321,20 +326,20 @@ Lay_Right(container1, container2)
 
 **PlantUML directional hint reference:**
 
-| Hint                        | Effect              | Use For                                |
-| --------------------------- | ------------------- | -------------------------------------- |
-| `Rel_Down(a, b, ...)`      | a above b           | Hierarchical tiers (API -> Services)   |
-| `Rel_Right(a, b, ...)`     | a left of b         | Horizontal flow, external systems      |
-| `Rel_Up(a, b, ...)`        | a below b           | Callbacks, responses                   |
-| `Rel_Left(a, b, ...)`      | a right of b        | Reverse horizontal flow                |
-| `Lay_Right(a, b)`          | Force a left of b   | Align elements horizontally in a tier  |
-| `Lay_Down(a, b)`           | Force a above b     | Align elements vertically              |
-| `Rel_Neighbor(a, b, ...)`  | Force adjacent      | Tightly coupled elements               |
+| Hint                  | Effect              | Use For                                |
+| --------------------- | ------------------- | -------------------------------------- |
+| `Rel_Down(a, b, ...)`  | a above b           | Hierarchical tiers (API → Services)    |
+| `Rel_Right(a, b, ...)` | a left of b         | Horizontal flow, external systems      |
+| `Rel_Up(a, b, ...)`    | a below b           | Callbacks, responses                   |
+| `Rel_Left(a, b, ...)`  | a right of b        | Reverse horizontal flow                |
+| `Lay_Right(a, b)`      | Force a left of b   | Align elements horizontally in a tier  |
+| `Lay_Down(a, b)`       | Force a above b     | Align elements vertically              |
+| `Rel_Neighbor(a, b, ...)` | Force adjacent   | Tightly coupled elements               |
 
 #### Deciding Container vs ContainerDb
 
-- If `technology` contains: `oracle`, `postgres`, `mysql`, `dynamodb`, `redis`, `mongodb`, `snowflake`, `s3` -> use `ContainerDb`
-- Otherwise -> use `Container`
+- If `technology` contains: `oracle`, `postgres`, `mysql`, `dynamodb`, `redis`, `mongodb`, `snowflake`, `s3` → use `ContainerDb`
+- Otherwise → use `Container`
 
 #### Handling Large Systems (>10 elements)
 
@@ -352,7 +357,7 @@ After generating the diagram code, validate against these criteria before presen
 | **Edge crossings**            | <5 for complex, 0 for simple     | Trace each relationship path visually    |
 | **Visual hierarchy**          | System boundary most prominent   | Is the boundary immediately identifiable? |
 | **Grouping**                  | Related elements close together  | Do tiers/layers appear as distinct groups? |
-| **Flow direction**            | Consistent L->R or T->B          | Does data flow follow one direction?     |
+| **Flow direction**            | Consistent L→R or T→B            | Does data flow follow one direction?     |
 | **Relationship traceability** | Can follow each line             | Trace each connection without confusion  |
 | **Abstraction level**         | One level per diagram            | No database tables on container diagrams |
 
@@ -379,16 +384,60 @@ If the validation checklist reveals issues (especially edge crossings):
 
 - "Swap declaration order of A and B to align with left-to-right flow"
 - "Move X adjacent to Y using `Lay_Right`"
-- "Change `Rel()` to `Rel_Right()` for the Orders->Payment relationship to prevent crossing with Inventory->Database"
+- "Change `Rel()` to `Rel_Right()` for the Orders→Payment relationship to prevent crossing with Inventory→Database"
+
+> See `[[Reference - C4 Diagrams with AI]]` Part III and Part VII for detailed refinement examples.
 
 ### Phase 3: Output
 
-1. **Display the generated diagram code** in the response for the user to copy
-2. **Ask the user** what to do with it:
-   - Save to a specific file path
-   - Just display (do not save)
+1. **Display the generated Mermaid** in the response for the user to copy
+2. **Ask the user** where to place the diagram:
+   - Update the System note's existing C4 diagram sections (replace template placeholders)
+   - Create a standalone Concept note: `Concept - C4 Diagrams - <System Name>.md`
+   - Just display (don't save)
 
-3. If saving, write the diagram code to the specified file path.
+3. If saving to the System note, replace the placeholder Mermaid blocks in the "## C4 Architecture Diagrams" section.
+
+4. If creating a standalone Concept note, use this structure:
+
+```markdown
+---
+type: Concept
+title: "C4 Diagrams - <System Name>"
+created: <today>
+modified: <today>
+confidence: high
+freshness: current
+source: synthesis
+verified: false
+reviewed: <today>
+tags:
+  [
+    activity/architecture,
+    type/diagram,
+    domain/<relevant>,
+    technology/<relevant>,
+  ]
+---
+
+# C4 Diagrams - <System Name>
+
+> Auto-generated from `c4:` frontmatter on [[System - <Name>]]. Regenerate with `/c4-diagram <name> both`.
+
+## Context Diagram (Level 1)
+
+<mermaid block>
+
+## Container Diagram (Level 2)
+
+<mermaid block>
+
+---
+
+**Generated:** <today>
+**Source:** [[System - <Name>]]
+**Skill:** `/c4-diagram`
+```
 
 ## Mermaid C4 Reference
 
@@ -427,19 +476,34 @@ Adjust `$c4ShapeInRow` based on element count:
 - 7-10 elements: `"4"`
 - 10+ elements: `"5"` (but prefer splitting the diagram)
 
+## Relationship to Other Skills
+
+| Skill              | Difference                                                               |
+| ------------------ | ------------------------------------------------------------------------ |
+| `/diagram`         | Generates Python `diagrams` PNGs (better for presentations, cloud icons) |
+| `/c4-diagram`      | Generates C4 diagrams in Mermaid, flowchart, or PlantUML format          |
+| `/diagram-review`  | Analyses existing diagrams for readability and architecture quality       |
+
+Use `/c4-diagram` for documentation that lives in the vault. Use `/diagram` for standalone images for presentations or Confluence.
+
+## Further Reading
+
+- **`.claude/prompts/c4-mermaid-diagrams.md`** — Full graph drawing theory (Sugiyama algorithm stages, barycentric method, Purchase et al. research), C4 colour standards, and worked examples
+- **`[[Reference - C4 Diagrams with AI]]`** — Research-backed guide with prompt engineering patterns, iterative refinement examples, and PlantUML vs Mermaid comparison
+
 ## Troubleshooting
 
 | Issue                  | Solution                                                     |
 | ---------------------- | ------------------------------------------------------------ |
-| Diagram does not render| Check Mermaid syntax — no special characters in descriptions |
+| Diagram doesn't render | Check Mermaid syntax - no special characters in descriptions |
 | Too cluttered          | Reduce to 8 elements, use `$c4ShapeInRow="4"`                |
 | Relationships overlap  | Use `Rel_R` and `Rel_L` to spread horizontally               |
-| Missing data           | Prompt the user for the required parameters listed in Phase 1 |
+| Missing data           | Add `c4:` frontmatter to the System note first               |
 
 ---
 
 **Invoke with:** `/c4-diagram <system-name> [context|container|both] [mermaid|flowchart|plantuml]`
 
-**Example:** `/c4-diagram OrderService both` — Generates C4 Context and Container diagrams from user-provided parameters
+**Example:** `/c4-diagram ODIE both` → Generates C4 Context and Container diagrams from ODIE's frontmatter
 
-**Example:** `/c4-diagram InventorySystem container plantuml` — Generates PlantUML Container diagram with directional hints
+**Example:** `/c4-diagram AMOS container plantuml` → Generates PlantUML Container diagram with directional hints

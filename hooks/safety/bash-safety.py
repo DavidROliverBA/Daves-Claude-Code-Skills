@@ -1,30 +1,8 @@
 #!/usr/bin/env python3
-"""
-Bash Safety Hook for Claude Code
-Auto-allows safe bash commands (e.g. non-recursive rm) to reduce permission prompts.
+"""PermissionRequest hook for Bash commands.
 
-Hook Type: PreToolUse (PermissionRequest matcher)
-Matcher: Bash
-Exit Codes:
-  0 - Always (outputs decision JSON or nothing)
-
-Usage in settings.json:
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [{"type": "command", "command": "python3 hooks/safety/bash-safety.py"}]
-      }
-    ]
-  }
-
-How it works:
-  - Intercepts Bash tool permission requests
-  - Auto-allows `rm` commands that do not use recursive flags (-r, -R, -rf, -fr)
-  - Recursive rm commands fall through to the normal permission prompt
-  - All other Bash commands are unaffected (normal prompt shows)
-
-CUSTOMISE: Add more auto-allow patterns for commands you trust.
+Auto-allows `rm` commands unless they include recursive flags (-r, -R, -rf, -fr).
+All other non-allowed Bash commands fall through to the normal permission prompt.
 """
 import json
 import re
@@ -40,7 +18,7 @@ except (json.JSONDecodeError, ValueError, EOFError):
 
 command = data.get("tool_input", {}).get("command", "").strip()
 
-# Only handle rm commands — everything else gets the normal prompt
+# Only handle rm commands - everything else gets the normal prompt
 if not re.match(r"^rm\s", command):
     sys.exit(0)
 
@@ -48,7 +26,7 @@ if not re.match(r"^rm\s", command):
 is_recursive = bool(re.search(r"-[a-zA-Z]*[rR]", command))
 
 if not is_recursive:
-    # Safe rm (single files, no recursion) — auto-allow
+    # Safe rm (single files, no recursion) - auto-allow
     print(json.dumps({
         "hookSpecificOutput": {
             "hookEventName": "PermissionRequest",

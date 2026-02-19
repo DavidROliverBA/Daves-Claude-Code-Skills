@@ -1,41 +1,18 @@
 #!/bin/bash
-# Context Loader Hook for Claude Code
-# Detects skill commands in user prompts and auto-loads relevant context files.
+# Skill Context Loader Hook
+# Detects skill commands and outputs relevant context files
+# Used by UserPromptSubmit hook to inject context before skill execution
 #
 # Hook Type: UserPromptSubmit
-# Input: JSON via stdin with "userPrompt" field
-# Output: JSON with additionalContext field (or empty {} for no context)
-#
-# Usage in settings.json:
-#   "hooks": {
-#     "UserPromptSubmit": [
-#       {
-#         "matcher": "",
-#         "hooks": [{"type": "command", "command": "bash hooks/ux/context-loader.sh"}]
-#       }
-#     ]
-#   }
-#
-# CUSTOMISE: Edit the skill-to-context mappings below for your project.
-# Context files should live in .claude/context/ relative to your project root.
+# Input: JSON via stdin with "prompt" field
+# Output: JSON with additionalContext field (or empty for no context)
 
 set -e
 
-# Auto-detect project root (walk up to find .git or .claude)
-find_project_root() {
-    local dir="$PWD"
-    while [[ "$dir" != "/" ]]; do
-        if [[ -d "$dir/.git" ]] || [[ -d "$dir/.claude" ]]; then
-            echo "$dir"
-            return 0
-        fi
-        dir="$(dirname "$dir")"
-    done
-    return 1
-}
-
-PROJECT_ROOT=$(find_project_root) || exit 0
-CONTEXT_DIR="$PROJECT_ROOT/.claude/context"
+# Absolute path required — hooks fire regardless of CWD, and relative paths
+# fail with "No such file or directory" during cross-repo work.
+VAULT_ROOT="."
+CONTEXT_DIR="$VAULT_ROOT/.claude/context"
 CONTEXTS_TO_LOAD=()
 
 # Read JSON input from stdin
@@ -44,7 +21,7 @@ INPUT=$(cat)
 # Extract the prompt from JSON input
 PROMPT=$(echo "$INPUT" | jq -r '.userPrompt // empty')
 
-# Exit early if no prompt
+# Exit early if no prompt - output empty JSON to satisfy parser
 if [[ -z "$PROMPT" ]]; then
     echo '{}'
     exit 0
@@ -58,34 +35,50 @@ queue_context() {
     fi
 }
 
-# Map skill commands and keywords to context files
+# Detect skill patterns and queue appropriate context
+# Using lowercase comparison for case-insensitivity
 PROMPT_LOWER=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
 
 # People-related skills
-if [[ "$PROMPT_LOWER" =~ /person|/meeting|/team ]]; then
+if [[ "$PROMPT_LOWER" =~ /person|/meeting ]]; then
     queue_context "people.md"
 fi
 
 # Project-related skills
-if [[ "$PROMPT_LOWER" =~ /project|/task|/status ]]; then
+if [[ "$PROMPT_LOWER" =~ /project-status|/timeline|/task|/sync-notion ]]; then
     queue_context "projects.md"
 fi
 
 # Architecture and decisions
-if [[ "$PROMPT_LOWER" =~ /adr|/decision|/architecture ]]; then
+if [[ "$PROMPT_LOWER" =~ /adr|/find-decisions|/incubator ]]; then
     queue_context "architecture.md"
 fi
 
 # Technology-related skills
-if [[ "$PROMPT_LOWER" =~ /weblink|/reference|/tool ]]; then
+if [[ "$PROMPT_LOWER" =~ /weblink|/youtube ]]; then
     queue_context "technology.md"
 fi
 
-# Search - load multiple contexts
-if [[ "$PROMPT_LOWER" =~ /search|/find|/related ]]; then
+# Related/search - load multiple contexts for comprehensive search
+if [[ "$PROMPT_LOWER" =~ /related ]]; then
     queue_context "projects.md"
     queue_context "people.md"
     queue_context "technology.md"
+fi
+
+# Summarize - may need project context
+if [[ "$PROMPT_LOWER" =~ /summarize ]]; then
+    queue_context "projects.md"
+fi
+
+# Organisation-related queries (case-sensitive for proper nouns)
+if [[ "$PROMPT" =~ Boeing|SAP|Collins|Axway|Swiss-AS ]]; then
+    queue_context "organisations.md"
+fi
+
+# Acronym detection - common BA/aviation terms (case-sensitive)
+if [[ "$PROMPT" =~ ODIE|EWS|BTP|CMS|EFB|CAMO|MRO|AMOS|AXIA ]]; then
+    queue_context "acronyms.md"
 fi
 
 # If no contexts to load, output empty JSON and exit
@@ -111,16 +104,17 @@ done
 
 # If we have context to add, output it as JSON
 if [[ -n "$CONTEXT_CONTENT" ]]; then
+    # Escape the content for JSON (handle newlines, quotes, backslashes)
     ESCAPED_CONTENT=$(echo "$CONTEXT_CONTENT" | jq -Rs .)
 
-    cat << JSONEOF
+    cat << EOF
 {
   "hookSpecificOutput": {
     "hookEventName": "UserPromptSubmit",
     "additionalContext": $ESCAPED_CONTENT
   }
 }
-JSONEOF
+EOF
 fi
 
 exit 0

@@ -1,19 +1,26 @@
+---
+name: diagram-review
+context: fork
+description: Analyse architecture diagrams and flowcharts
+model: opus
+---
+
 # /diagram-review
 
-Perform comprehensive analysis of architecture diagrams, flowcharts, and technical drawings using sub-agents with vision capabilities.
+Perform comprehensive analysis of architecture diagrams, flowcharts, and technical drawings using Sonnet sub-agents.
 
 ## Usage
 
 ```
 /diagram-review <image-path>
-/diagram-review path/to/architecture-diagram.png
-/diagram-review path/to/data-flow.png --type "C4"
-/diagram-review path/to/process-flow.png --project "My Project"
+/diagram-review Attachments/architecture-diagram.png
+/diagram-review Attachments/data-flow.png --type "C4"
+/diagram-review Attachments/process-flow.png --project "Caerus"
 ```
 
 ## Instructions
 
-This skill uses **sub-agents** for thorough diagram analysis with vision capabilities.
+This skill uses **Sonnet model sub-agents** for thorough diagram analysis with vision capabilities.
 
 ### Phase 1: Diagram Loading
 
@@ -21,11 +28,11 @@ This skill uses **sub-agents** for thorough diagram analysis with vision capabil
 2. Identify diagram type if specified or detect automatically
 3. Load project context if provided
 
-### Phase 2: Comprehensive Analysis (Sub-Agents)
+### Phase 2: Comprehensive Analysis (Sonnet Sub-Agents)
 
-Launch these sub-agents in parallel:
+Launch these sub-agents using `model: "sonnet"`:
 
-**Agent 1: Component Extraction**
+**Agent 1: Component Extraction** (Sonnet)
 ```
 Task: Extract all components and elements from the diagram
 - Read the image file using the Read tool
@@ -36,7 +43,7 @@ Task: Extract all components and elements from the diagram
 Return: Complete component inventory with labels
 ```
 
-**Agent 2: Relationship Mapping**
+**Agent 2: Relationship Mapping** (Sonnet)
 ```
 Task: Map all connections and relationships
 - Read the image file
@@ -48,7 +55,7 @@ Task: Map all connections and relationships
 Return: Relationship matrix with flow directions
 ```
 
-**Agent 3: Architecture Pattern Analysis**
+**Agent 3: Architecture Pattern Analysis** (Sonnet)
 ```
 Task: Analyse architectural patterns and quality
 - Read the image file
@@ -61,21 +68,21 @@ Task: Analyse architectural patterns and quality
 - **Readability assessment:**
   - Count edge crossings (target: <5 for complex, 0 for simple)
   - Check visual hierarchy (is the system boundary the most prominent element?)
-  - Verify consistent flow direction (L-to-R or T-to-B, not mixed)
+  - Verify consistent flow direction (L→R or T→B, not mixed)
   - Assess Gestalt proximity compliance (are related elements grouped together?)
   - Check single abstraction level (no database tables on container diagrams)
 Return: Pattern analysis with architectural assessment and readability score
 ```
 
-**Agent 4: Technology & Integration Analysis**
+**Agent 4: Technology & Integration Analysis** (Sonnet)
 ```
 Task: Identify technologies and integrations
 - Read the image file
 - Recognise technology logos and icons
-- Identify cloud services (AWS, Azure, GCP, etc.)
+- Identify cloud services (AWS, Azure, SAP)
 - Note databases, queues, APIs
 - Map external system integrations
-- Identify known enterprise systems (ERP, CRM, MES, etc.)
+- Identify known BA systems (SAP EWS, AMOS, ODIE, etc.)
 Return: Technology inventory with integration points
 ```
 
@@ -142,7 +149,7 @@ Return: Technology inventory with integration points
 |-------------------------------|-------------------|----------------------------------|
 | **Edge crossings**            | {{count}}         | <5 for complex, 0 for simple     |
 | **Visual hierarchy**          | {{pass/fail}}     | System boundary most prominent   |
-| **Flow direction**            | {{L-to-R / T-to-B / mixed}} | Consistent single direction  |
+| **Flow direction**            | {{L→R / T→B / mixed}} | Consistent single direction  |
 | **Grouping effectiveness**    | {{pass/fail}}     | Related elements close together  |
 | **Relationship traceability** | {{pass/fail}}     | Can follow each line clearly     |
 | **Abstraction level**         | {{pass/fail}}     | One level per diagram            |
@@ -161,16 +168,16 @@ Return: Technology inventory with integration points
 ### Integration Technologies
 {{APIs, messaging, ETL tools}}
 
-## Related Documentation
+## Related Notes
 
-### Related Projects
-{{links to related project documentation}}
+### Matching Projects
+{{links to related project notes}}
 
-### Related Architecture Decisions
-{{links to architecture decision records}}
+### Related ADRs
+{{links to architecture decisions}}
 
 ### Related Systems
-{{links to system or platform documentation}}
+{{links to organisation or system notes}}
 
 ## Suggested Follow-ups
 
@@ -181,5 +188,5 @@ Return: Technology inventory with integration points
 ### Notes
 
 - Optimised for C4 diagrams, UML, flowcharts, and network diagrams
-- Can recognise common enterprise systems and technologies
+- Can recognise BA-specific systems and technologies
 - Useful for architecture reviews and documentation
