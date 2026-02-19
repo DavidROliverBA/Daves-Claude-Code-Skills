@@ -1,6 +1,6 @@
 # Why Your AI-Generated Diagrams Look Terrible (And How to Fix Them)
 
-*David Oliver, Solutions Architect*
+*A Solutions Architect working in airline operations IT*
 
 You asked Claude to "generate a C4 diagram for my order processing system." It produced fifteen elements scattered randomly across the page, with relationships crossing each other like a plate of spaghetti. The diagram is technically correct. Every element is there. Every relationship is accurate. But it is completely impossible to follow.
 
@@ -263,4 +263,4 @@ The difference between a terrible AI diagram and a good one is not asking for "c
 
 ---
 
-*David Oliver is a Solutions Architect at British Airways, working in Operations and Engineering IT. He builds knowledge management systems with Obsidian and Claude Code, and is unreasonably passionate about making architecture diagrams legible.*
+*The author is a Solutions Architect working in airline operations and engineering IT. He builds knowledge management systems with Obsidian and Claude Code, and is unreasonably passionate about making architecture diagrams legible.*
