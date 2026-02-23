@@ -1,0 +1,116 @@
+diagram: AlertHub.CloudStack
+title: "Inside CloudStack"
+flow: TB
+dpi: 150
+
+style:
+  font: Helvetica
+  borderWeight: [3, 2, 1.5, 1]
+  backgrounds: ["white", "#F7F9FB", "#EBF5FB", "#FAFAFA"]
+
+boxes:
+  CloudStack:
+    label: "CloudStack (Analytics Platform)\nSnowflake | DBT Cloud | 150 TB active | 2800+ quality rules"
+    style: { color: "#2E86C1", background: "#F7F9FB" }
+    ports:
+      RawDataIn: { dir: in, label: "Raw Data In" }
+      CuratedOut: { dir: out, label: "Curated Out" }
+      BIQuery: { dir: in, label: "BI Query" }
+    children:
+      Snowflake:
+        label: "Snowflake (SaaS)\n150 TB | Multi-cluster compute"
+        zoom: AlertHub.Infrastructure
+        style: { color: "#5DADE2", background: "#EBF5FB" }
+        children:
+          Bronze:
+            label: "Bronze Layer\nRaw ingestion\n90-day retention"
+            style: { color: "#B7950B", background: "#FEF9E7" }
+          Silver:
+            label: "Silver Layer\nCleansed, validated\nDeduplicated"
+            style: { color: "#1E8449", background: "#EAFAF1" }
+          Gold:
+            label: "Gold Layer\nBusiness-ready\nAggregated"
+            style: { color: "#D35400", background: "#FDF2E9" }
+
+      DBT Cloud:
+        label: "DBT Cloud (SaaS)"
+        style: { color: "#5DADE2", background: "#EBF5FB" }
+        children:
+          DBT Models:
+            label: "450 DBT Models\nSQL + Jinja"
+            style: { color: "#5DADE2" }
+          Quality Rules:
+            label: "2800+ Quality Rules\nCompleteness, Validity"
+            style: { color: "#5DADE2" }
+
+      Orchestration:
+        style: { color: "#5DADE2", background: "#EBF5FB" }
+        children:
+          Snowflake Tasks:
+            label: "Snowflake Tasks\nDaily 04:00 UTC"
+            style: { color: "#5DADE2" }
+
+      Data Catalogue:
+        label: "Data Catalogue\nMetadata, PII tagging\nGovernance"
+        style: { color: "#2E86C1", background: "#EBF5FB" }
+
+  Mercury:
+    label: "Mercury\n(Streaming)"
+    style: { color: "#2E86C1", background: "#D6EAF8" }
+
+  API Layer:
+    style: { color: "#2E86C1", background: "#D6EAF8" }
+
+  Analysts:
+    style: { color: "#7D3C98", background: "#E8DAEF" }
+
+edges:
+  - from: Mercury
+    to: CloudStack:RawDataIn
+    label: "Snowpipe ingestion"
+    style: { color: "#1A5276" }
+  - from: Bronze
+    to: Silver
+    label: "ELT"
+    style: { color: "#D4AC0D" }
+  - from: Silver
+    to: Gold
+    label: "Transform & aggregate"
+    style: { color: "#D4AC0D" }
+  - from: DBT Models
+    to: Silver
+    label: "Apply transformations"
+    style: { color: "#5DADE2" }
+  - from: Quality Rules
+    to: Silver
+    label: "Quality checks (99.7% pass)"
+    style: { color: "#5DADE2" }
+  - from: Snowflake Tasks
+    to: DBT Models
+    label: "Trigger runs"
+    style: { color: "#5DADE2" }
+  - from: Gold
+    to: API Layer
+    label: "Secure Data Share"
+    style: { color: "#1A5276" }
+  - from: Analysts
+    to: CloudStack:BIQuery
+    label: "Tableau, Looker"
+    style: { color: "#7D3C98" }
+  - from: Bronze
+    to: Data Catalogue
+    label: "Raw metadata"
+    style: { color: "#999999", dashed: true }
+  - from: Gold
+    to: Data Catalogue
+    label: "Business metadata"
+    style: { color: "#999999", dashed: true }
+
+legend:
+  edgeColours:
+    Dark blue: Boundary port crossing
+    Gold: Medallion progression
+    Light blue: Internal flow
+    Purple: Analyst query
+    Grey dashed: Metadata/monitoring
+  portTable: true

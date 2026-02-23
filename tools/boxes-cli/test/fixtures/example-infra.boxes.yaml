@@ -1,0 +1,210 @@
+diagram: AlertHub.Infrastructure
+title: "AlertHub Cloud Deployment (the infrastructure bridge)"
+flow: TB
+dpi: 150
+
+style:
+  font: Helvetica
+  borderWeight: [3, 2, 1.5, 1, 0.5]
+  backgrounds: ["white", "#F0F7FC", "#FFF8EE", "#FFFDF5", "white"]
+
+boxes:
+  AlertHub Production:
+    label: "AlertHub Production Deployment\nHybrid: AWS + SaaS platforms | eu-west-2"
+    style: { color: "#5DADE2", background: "#F0F7FC" }
+    children:
+      AWS Account:
+        label: "AWS Account: example-production\neu-west-2 (London)"
+        style: { color: "#FF9900", background: "#FFF8EE" }
+        children:
+          VPC:
+            label: "VPC: example-production-vpc"
+            style: { color: "#FFB84D", background: "#FFFDF5" }
+            children:
+              Private Data:
+                label: "Subnet: private-data"
+                style: { color: "#FFB84D" }
+                children:
+                  S3 Raw:
+                    label: "S3\nexample-raw-zone\n(Landing)"
+                    style: { color: "#FF9900", background: "#FFF3E0" }
+                  S3 Bronze:
+                    label: "S3\nexample-bronze\n(150 TB+)"
+                    style: { color: "#FF9900", background: "#FFF3E0" }
+
+              Private Compute:
+                label: "Subnet: private-compute"
+                style: { color: "#FFB84D" }
+                children:
+                  EKS:
+                    label: "EKS Cluster\nPipeline workloads"
+                    style: { color: "#FF9900", background: "#FFF3E0" }
+                  Lambda:
+                    label: "Lambda\nEvent triggers"
+                    style: { color: "#FF9900", background: "#FFF3E0" }
+
+              Public API:
+                label: "Subnet: public-api"
+                style: { color: "#FFB84D" }
+                children:
+                  API Gateway:
+                    label: "API Gateway (Private)\nREST endpoints"
+                    style: { color: "#FF9900", background: "#FFF3E0" }
+
+              KMS:
+                label: "KMS\nAES-256"
+                style: { color: "#E74C3C" }
+              Secrets Manager:
+                style: { color: "#E74C3C" }
+
+          SNS:
+            label: "SNS\nNotifications"
+            style: { color: "#FF9900", background: "#FFF3E0" }
+          SQS:
+            label: "SQS\nAsync queues"
+            style: { color: "#FF9900", background: "#FFF3E0" }
+
+      Confluent Cloud:
+        label: "Confluent Cloud (SaaS)\nManaged Kafka"
+        style: { color: "#00BFFF", background: "#F0FAFF" }
+        children:
+          Kafka Brokers:
+            label: "Kafka Brokers\n1000+ partitions\n14-day retention"
+            style: { color: "#00BFFF", background: "#E0F7FF" }
+          Schema Registry:
+            label: "Schema Registry\nAvro schemas"
+            style: { color: "#00BFFF", background: "#E0F7FF" }
+          Kafka Connect:
+            label: "Kafka Connect\nDebezium CDC"
+            style: { color: "#00BFFF", background: "#E0F7FF" }
+
+      Snowflake:
+        label: "Snowflake (SaaS)\nManaged Data Warehouse"
+        style: { color: "#29B5E8", background: "#F0FAFF" }
+        children:
+          SF Compute:
+            label: "Multi-cluster Compute\nWarehouse: AlertHub_WH"
+            style: { color: "#29B5E8", background: "#E0F7FF" }
+          SF Storage:
+            label: "Managed Storage\n150 TB governed\nBronze/Silver/Gold"
+            style: { color: "#29B5E8", background: "#E0F7FF" }
+          Secure Data Share:
+            label: "Secure Data Share\nConsumer access"
+            style: { color: "#29B5E8", background: "#E0F7FF" }
+
+      DBT Cloud:
+        label: "DBT Cloud (SaaS)"
+        style: { color: "#FF694B", background: "#FFF5F2" }
+        children:
+          DBT Runner:
+            label: "DBT Runner\n450 models\n2800+ tests"
+            style: { color: "#FF694B", background: "#FFE8E2" }
+
+      Monitoring:
+        label: "Monitoring (SaaS)"
+        style: { color: "#999999", background: "#F8F8F8" }
+        children:
+          DataDog:
+            label: "DataDog\nAPM, alerting"
+            style: { color: "#999999", background: "#F0F0F0" }
+          Splunk:
+            label: "Splunk\nLogs (12-month)"
+            style: { color: "#999999", background: "#F0F0F0" }
+
+  On-Prem:
+    label: "On-prem\nSAP S/4HANA"
+    style: { color: "#8B4513", background: "#F5E6CC" }
+
+edges:
+  - from: Kafka Connect
+    to: S3 Raw
+    label: "S3 Sink (PrivateLink)"
+    style: { color: "#999999", dashed: true }
+  - from: Kafka Brokers
+    to: EKS
+    label: "Kafka consumers (PrivateLink)"
+    style: { color: "#999999", dashed: true }
+  - from: Kafka Connect
+    to: Kafka Brokers
+    label: "CDC events"
+    style: { color: "#00BFFF" }
+  - from: Kafka Brokers
+    to: Schema Registry
+    label: "Schema validation"
+    style: { color: "#00BFFF" }
+  - from: S3 Raw
+    to: SF Storage
+    label: "Snowpipe (auto-ingest)"
+    style: { color: "#29B5E8" }
+  - from: S3 Bronze
+    to: SF Storage
+    label: "External tables"
+    style: { color: "#29B5E8" }
+  - from: SF Compute
+    to: SF Storage
+    style: { color: "#29B5E8" }
+  - from: SF Storage
+    to: Secure Data Share
+    label: "Curated data"
+    style: { color: "#29B5E8" }
+  - from: DBT Runner
+    to: SF Compute
+    label: "ELT runs (scheduled)"
+    style: { color: "#FF694B" }
+  - from: Secure Data Share
+    to: API Gateway
+    label: "REST query results"
+    style: { color: "#FF9900" }
+  - from: S3 Raw
+    to: Lambda
+    label: "S3 event"
+    style: { color: "#FF9900" }
+  - from: Lambda
+    to: Kafka Connect
+    label: "Route"
+    style: { color: "#FF9900" }
+  - from: Lambda
+    to: SNS
+    label: "Alerts"
+    style: { color: "#FF9900" }
+  - from: SNS
+    to: SQS
+    style: { color: "#FF9900" }
+  - from: KMS
+    to: SF Storage
+    label: "Encrypt"
+    style: { color: "#E74C3C", dashed: true }
+  - from: Secrets Manager
+    to: API Gateway
+    label: "Creds"
+    style: { color: "#E74C3C", dashed: true }
+  - from: Secrets Manager
+    to: Kafka Connect
+    label: "Creds"
+    style: { color: "#E74C3C", dashed: true }
+  - from: Kafka Brokers
+    to: DataDog
+    label: "Consumer lag"
+    style: { color: "#999999", dashed: true }
+  - from: SF Compute
+    to: DataDog
+    label: "Query perf"
+    style: { color: "#999999", dashed: true }
+  - from: EKS
+    to: Splunk
+    label: "Logs"
+    style: { color: "#999999", dashed: true }
+  - from: On-Prem
+    to: Kafka Connect
+    label: "VPN tunnel (Site-to-site)"
+    style: { color: "#999999", dashed: true }
+
+legend:
+  edgeColours:
+    Orange: AWS service
+    Cyan: Confluent/Kafka
+    Snowflake Blue: Snowflake data flow
+    DBT Red: Transformation pipeline
+    Grey dashed: VPN/PrivateLink/Monitoring
+    Red: Security boundary
+  portTable: false

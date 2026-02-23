@@ -1,0 +1,23 @@
+diagram: Test.Context
+title: "Minimal Test"
+flow: LR
+dpi: 150
+
+boxes:
+  Outer:
+    children:
+      Inner A: {}
+      Inner B:
+        ports:
+          PortIn: { dir: in, label: "Input" }
+          PortOut: { dir: out, label: "Output" }
+
+edges:
+  - from: Inner A
+    to: Inner B:PortIn
+    label: "data flow"
+
+legend:
+  edgeColours:
+    Blue: Data flow
+  portTable: true

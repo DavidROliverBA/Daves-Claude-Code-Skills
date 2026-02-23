@@ -1,0 +1,19 @@
+{
+  "name": "boxes-cli",
+  "version": "0.1.0",
+  "description": "Boxes notation diagram renderer — YAML to SVG/PNG via ELK.js",
+  "type": "module",
+  "bin": {
+    "boxes": "./bin/boxes.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "render": "node bin/boxes.mjs render"
+  },
+  "dependencies": {
+    "elkjs": "^0.9.0",
+    "js-yaml": "^4.1.0",
+    "sharp": "^0.33.0",
+    "commander": "^12.0.0"
+  }
+}

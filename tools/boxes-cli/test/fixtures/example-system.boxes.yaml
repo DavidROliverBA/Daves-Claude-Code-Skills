@@ -1,0 +1,112 @@
+diagram: AlertHub.System
+title: "Inside AlertHub"
+flow: LR
+dpi: 150
+
+style:
+  font: Helvetica
+  borderWeight: [3, 2, 1.5, 1]
+  backgrounds: ["white", "#EBF5FB", "#F7F9FB", "#FAFAFA"]
+
+boxes:
+  AlertHub:
+    label: "AlertHub (CloudStack Data Integration Ecosystem)\n99.95% SLA | 2B+ records/day | 450 pipelines"
+    style: { color: "#1A5276", background: "#EBF5FB" }
+    ports:
+      CDCIn: { dir: in, label: "CDC In" }
+      ACARSStream: { dir: in, label: "ACARS Stream" }
+      EventsIn: { dir: in, label: "Events In" }
+      RESTAPIOut: { dir: out, label: "REST API Out" }
+      DataFeedOut: { dir: out, label: "Data Feed Out" }
+      BIQuery: { dir: in, label: "BI Query" }
+    children:
+      Mercury:
+        label: "Mercury (Streaming Platform)\nApache Kafka | Real-time"
+        zoom: AlertHub.Mercury
+        style: { color: "#2E86C1", background: "#F7F9FB" }
+        ports:
+          CDCIn: { dir: in, label: "CDC In" }
+          ACARSStream: { dir: in, label: "ACARS Stream" }
+          EventsIn: { dir: in, label: "Events In" }
+          StreamOut: { dir: out, label: "Stream Out" }
+        children:
+          Kafka Core:
+            label: "Kafka + Connect\n+ Schema Registry\n1000+ partitions"
+            style: { color: "#2E86C1" }
+
+      CloudStack:
+        label: "CloudStack (Analytics Platform)\nSnowflake | DBT Cloud | 150 TB"
+        zoom: AlertHub.CloudStack
+        style: { color: "#2E86C1", background: "#F7F9FB" }
+        ports:
+          RawDataIn: { dir: in, label: "Raw Data In" }
+          CuratedOut: { dir: out, label: "Curated Out" }
+        children:
+          Analytics Core:
+            label: "Bronze → Silver → Gold\nDBT (2800 rules)\nSnowflake Tasks"
+            style: { color: "#2E86C1" }
+
+      API Layer:
+        label: "API Layer\nKong + Private API GW"
+        style: { color: "#2E86C1", background: "#F7F9FB" }
+        ports:
+          DataIn: { dir: in, label: "Data In" }
+          APIOut: { dir: out, label: "API Out" }
+        children:
+          API Core:
+            label: "Kong + API GW\nOAuth 2.0 | 100 req/s"
+            style: { color: "#2E86C1" }
+
+      Observability:
+        label: "Observability"
+        style: { color: "#2E86C1", background: "#F7F9FB" }
+        children:
+          Monitoring:
+            label: "DataDog | Splunk\nPrometheus | Grafana"
+            style: { color: "#2E86C1" }
+
+edges:
+  - from: Mercury:StreamOut
+    to: CloudStack:RawDataIn
+    label: "AlertHub.Mercury:StreamOut\n→ AlertHub.CloudStack:RawDataIn"
+    style: { color: "#1A5276" }
+  - from: CloudStack:CuratedOut
+    to: API Layer:DataIn
+    label: "AlertHub.CloudStack:CuratedOut\n→ AlertHub.API:DataIn"
+    style: { color: "#1A5276" }
+  - from: Kafka Core
+    to: Monitoring
+    label: "Metrics"
+    style: { color: "#999999", dashed: true }
+  - from: Analytics Core
+    to: Monitoring
+    label: "Query stats"
+    style: { color: "#999999", dashed: true }
+  # Boundary → internal routing
+  - from: AlertHub:CDCIn
+    to: Mercury:CDCIn
+    label: "CDC events"
+    style: { color: "#1A5276" }
+  - from: AlertHub:ACARSStream
+    to: Mercury:ACARSStream
+    label: "ACARS stream"
+    style: { color: "#1A5276" }
+  - from: AlertHub:EventsIn
+    to: Mercury:EventsIn
+    label: "Maintenance events"
+    style: { color: "#1A5276" }
+  - from: API Layer:APIOut
+    to: AlertHub:RESTAPIOut
+    label: "REST/JSON"
+    style: { color: "#1A5276" }
+  - from: API Layer:APIOut
+    to: AlertHub:DataFeedOut
+    label: "Data feeds"
+    style: { color: "#1A5276" }
+
+legend:
+  edgeColours:
+    Dark blue: Cross-container port
+    Blue: Internal flow
+    Grey: Monitoring
+  portTable: true

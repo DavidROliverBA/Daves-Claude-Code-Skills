@@ -1,0 +1,118 @@
+diagram: AlertHub.Context
+title: "AlertHub System Context"
+flow: LR
+dpi: 150
+
+metadata:
+  author: Jane Smith
+  date: "2026-02-20"
+  version: "3.0"
+  status: Draft
+  scope: "BA Operations & Engineering IT"
+
+style:
+  font: Helvetica
+  borderWeight: [2, 1.5, 1.5, 1]
+  backgrounds: ["white", "white", "white", "white"]
+
+boxes:
+  Sources:
+    style: { color: "#8B4513", background: "#FDF6EC" }
+    children:
+      SAP S/4HANA:
+        technology: "ERP System"
+        description: "Work orders, procurement,\nmaterial management"
+        style: { color: "#8B4513", background: "#F5E6CC" }
+      FICO (ACARS):
+        technology: "Flight Ops"
+        description: "Real-time flight data\nvia ACARS network"
+        style: { color: "#8B4513", background: "#F5E6CC" }
+      EWS:
+        technology: "Engineering"
+        description: "Workcards and\nmaintenance tasks"
+        style: { color: "#8B4513", background: "#F5E6CC" }
+
+  Platform:
+    style: { color: "#1A5276", background: "#EBF5FB" }
+    children:
+      AlertHub:
+        label: "AlertHub\nCloudStack Data Integration Ecosystem\n99.95% availability SLA\n2B+ records per day"
+        zoom: AlertHub.System
+        style: { color: "#1A5276", background: "#D6EAF8" }
+        ports:
+          CDCIn: { dir: in, label: "CDC In" }
+          ACARSIn: { dir: in, label: "ACARS In" }
+          EventsIn: { dir: in, label: "Events In" }
+          RESTOut: { dir: out, label: "REST Out" }
+          FeedOut: { dir: out, label: "Feed Out" }
+          BIIn: { dir: in, label: "BI In" }
+          MgmtIn: { dir: in, label: "Mgmt In", side: north }
+
+  Consumers:
+    style: { color: "#1E8449", background: "#EAFAF1" }
+    children:
+      A-CAP:
+        technology: "Analytics"
+        description: "Crew analytics and\nperformance monitoring"
+        style: { color: "#1E8449", background: "#D5F5E3" }
+      Mission Control:
+        technology: "Ops Dashboard"
+        description: "Real-time hub\noperational visibility"
+        style: { color: "#1E8449", background: "#D5F5E3" }
+      Crewcast:
+        technology: "Crew Mgmt"
+        description: "Crew scheduling and\ncommunication"
+        style: { color: "#1E8449", background: "#D5F5E3" }
+
+  Actors:
+    style: { color: "#7D3C98", background: "#F5EEF8" }
+    children:
+      Data Engineer:
+        description: "Builds and maintains\ndata pipelines"
+        style: { color: "#7D3C98", background: "#E8DAEF" }
+        actor: true
+      Business Analyst:
+        description: "Analyses operational\ndata for insights"
+        style: { color: "#7D3C98", background: "#E8DAEF" }
+        actor: true
+
+edges:
+  - from: SAP S/4HANA
+    to: AlertHub:CDCIn
+    label: "Work orders via Kafka CDC"
+    style: { color: "#8B4513" }
+  - from: FICO (ACARS)
+    to: AlertHub:ACARSIn
+    label: "Flight events via ACARS"
+    style: { color: "#8B4513" }
+  - from: EWS
+    to: AlertHub:EventsIn
+    label: "Workcards via event bus"
+    style: { color: "#8B4513" }
+  - from: AlertHub:RESTOut
+    to: A-CAP
+    label: "Crew analytics via REST"
+    style: { color: "#1E8449" }
+  - from: AlertHub:RESTOut
+    to: Mission Control
+    label: "Ops metrics via REST"
+    style: { color: "#1E8449" }
+  - from: AlertHub:FeedOut
+    to: Crewcast
+    label: "Schedules via data feed"
+    style: { color: "#1E8449" }
+  - from: Data Engineer
+    to: AlertHub:MgmtIn
+    label: "Pipeline mgmt"
+    style: { color: "#7D3C98" }
+  - from: Business Analyst
+    to: AlertHub:BIIn
+    label: "BI queries"
+    style: { color: "#7D3C98" }
+
+legend:
+  edgeColours:
+    Brown: Source data in
+    Green: Consumer data out
+    Purple: Actor interaction
+  portTable: true
