@@ -50,7 +50,7 @@ Batch rename files matching a pattern, with automatic wiki-link updates.
 
    Examples:
      System - Legacy App.md → Legacy App.md
-     Organisation - Boeing.md → Boeing.md
+     Organisation - Acme Corp.md → Acme Corp.md
      ...
 
    Proceed? (yes/no)

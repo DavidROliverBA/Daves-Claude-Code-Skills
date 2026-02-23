@@ -2,7 +2,7 @@
 
 A curated collection of [Claude Code](https://claude.ai/code) skills and hooks for software architecture, knowledge management, and engineering. Drop `.md` files into `.claude/skills/` for slash commands, or `.py`/`.sh` scripts into your hooks directory for automated guardrails.
 
-**37 skills** across **8 categories**. **17 skills** use **agent teams** — parallel sub-agents launched via the Task tool that analyse different dimensions simultaneously, process batches at scale, or triage before deep-diving. **12 hooks** across **5 categories** provide automated security, quality, and UX guardrails.
+**42 skills** across **8 categories**. **17 skills** use **agent teams** — parallel sub-agents launched via the Task tool that analyse different dimensions simultaneously, process batches at scale, or triage before deep-diving. **16 hooks** across **6 categories** provide automated security, quality, UX, and validation guardrails. Plus **boxes-cli**, a YAML-to-SVG/PNG diagram renderer, and a **meta-agent** for creating new skills.
 
 ---
 
@@ -11,15 +11,15 @@ A curated collection of [Claude Code](https://claude.ai/code) skills and hooks f
 | Category | Skills | Agent Teams | Focus |
 |----------|--------|-------------|-------|
 | [Architecture](#architecture-8-skills) | 8 | 5 | Decisions, impact analysis, NFRs, cost optimisation |
-| [Content Processing](#content-processing-8-skills) | 8 | 2 | PDFs, PowerPoint, YouTube, web pages, books |
+| [Content Processing](#content-processing-10-skills) | 10 | 2 | PDFs, PowerPoint, YouTube, web pages, books, CSV |
 | [Diagramming](#diagramming-3-skills) | 3 | 1 | C4 diagrams, system landscapes, diagram review |
-| [Vault Health](#vault-health-6-skills) | 6 | 6 | Quality reports, broken links, orphans, auto-tagging |
+| [Vault Health](#vault-health-9-skills) | 9 | 6 | Quality reports, broken links, orphans, auto-tagging, diagnostics |
 | [Scoring](#scoring-2-skills) | 2 | 1 | Document scoring, executive summaries |
 | [Reporting](#reporting-2-skills) | 2 | 2 | Weekly summaries, project status reports |
 | [Meetings](#meetings-3-skills) | 3 | 1 | Meeting notes, voice transcripts, email capture |
 | [Knowledge](#knowledge-5-skills) | 5 | 0 | Summarisation, related content, decisions, timelines |
-| **Total** | **37** | **17** | |
-| [**Hooks**](#hooks-12-hooks) | **12** | — | Security, quality, UX, safety, notifications |
+| **Total** | **42** | **17** | |
+| [**Hooks**](#hooks-16-hooks) | **16** | — | Security, quality, UX, safety, validation, notifications |
 
 ---
 
@@ -38,9 +38,9 @@ Skills for documenting decisions, analysing change impact, comparing scenarios, 
 | [Cost Analysis](skills/architecture/cost-analysis.md) | `/cost-analysis` | 3 | Analyse infrastructure, licensing, and operational costs; identify savings opportunities |
 | [Dependency Graph](skills/architecture/dependency-graph.md) | `/dependency-graph` | — | Visualise system dependencies with colour-coded criticality in Mermaid |
 
-## Content Processing (8 skills)
+## Content Processing (10 skills)
 
-Skills for extracting and structuring content from PDFs, presentations, videos, web pages, articles, and books. Captures external knowledge into searchable Markdown notes.
+Skills for extracting and structuring content from PDFs, presentations, videos, web pages, articles, books, and CSV data. Captures external knowledge into searchable Markdown notes.
 
 | Skill | Command | Agents | Description |
 |-------|---------|--------|-------------|
@@ -52,6 +52,8 @@ Skills for extracting and structuring content from PDFs, presentations, videos, 
 | [Article](skills/content-processing/article.md) | `/article` | — | Quick article capture with summary, key quotes, and relevance scoring |
 | [Book Notes](skills/content-processing/book-notes.md) | `/book-notes` | 3 | Create book notes with parallel extraction and optional knowledge compounding via spawned Concept/Pattern/Theme notes |
 | [Document Extract](skills/content-processing/document-extract.md) | `/document-extract` | — | Extract from any format (PDF, DOCX, HTML, CSV) with auto-detection |
+| [CSV to Page](skills/content-processing/csv-to-page.md) | `/csv-to-page` | — | Convert CSV data to structured Markdown notes with frontmatter |
+| [De-AI-ify](skills/content-processing/de-ai-ify.md) | `/de-ai-ify` | — | Remove AI-generated phrasing and rewrite in natural, human voice |
 
 ## Diagramming (3 skills)
 
@@ -63,9 +65,9 @@ Skills for generating and reviewing architecture diagrams. Built on graph drawin
 | [C4 Diagram](skills/diagramming/c4-diagram.md) | `/c4-diagram` | — | Specialised C4 generation: Mermaid C4, flowchart LR with C4 styling, or PlantUML |
 | [Diagram Review](skills/diagramming/diagram-review.md) | `/diagram-review` | 4 | Analyse existing diagrams for readability and architecture quality |
 
-## Vault Health (6 skills)
+## Vault Health (9 skills)
 
-Skills for measuring and improving the quality of a Markdown knowledge vault. All six use agent teams — fan-out for multi-dimensional analysis, batch for high-throughput processing.
+Skills for measuring and improving the quality of a Markdown knowledge vault. Six use agent teams — fan-out for multi-dimensional analysis, batch for high-throughput processing. Three additional utilities handle renaming, diagnostics, and URL validation.
 
 | Skill | Command | Agents | Description |
 |-------|---------|--------|-------------|
@@ -75,6 +77,9 @@ Skills for measuring and improving the quality of a Markdown knowledge vault. Al
 | [Auto-Tag](skills/vault-health/auto-tag.md) | `/auto-tag` | N | Batch auto-tag notes using type-based rules and customisable keyword-to-tag mapping tables |
 | [Auto-Summary](skills/vault-health/auto-summary.md) | `/auto-summary` | N | Batch-generate one-line `summary` fields with type-specific patterns and quality validation rules |
 | [Link Checker](skills/vault-health/link-checker.md) | `/link-checker` | N | Validate external URLs with curl-based checking, frontmatter status tracking, and cross-reference verification |
+| [Rename](skills/vault-health/rename.md) | `/rename` | — | Safely rename notes with automatic backlink updates across the vault |
+| [Startup Diagnostic](skills/vault-health/startup-diagnostic.md) | `/startup-diagnostic` | — | Run vault health checks on session start — stale notes, broken links, orphans |
+| [Check Weblinks](skills/vault-health/check-weblinks.md) | `/check-weblinks` | — | Validate external URLs in frontmatter and note body with status reporting |
 
 ## Scoring (2 skills)
 
@@ -239,9 +244,10 @@ After copying, invoke any skill in Claude Code:
 | Document | Description |
 |----------|-------------|
 | [Agent Teams Guide](docs/agent-teams-guide.md) | How agent teams work: patterns, model selection, best practices, anti-patterns, worked example |
-| [Skills Reference](docs/skills-reference.md) | Quick-reference card: all skills by category, installation commands, model cost guide |
+| [Skills Reference](docs/skills-reference.md) | Quick-reference card: all 42 skills by category, installation commands, model cost guide |
 | [Blog Post](docs/blog-post.md) | Why Your AI-Generated Diagrams Look Terrible — the graph drawing research behind the diagramming skills |
 | [Hooks Guide](docs/hooks/README.md) | Complete hooks documentation: lifecycle events, patterns, configuration, installation |
+| [boxes-cli README](tools/boxes-cli/README.md) | YAML-to-SVG/PNG diagram renderer — format reference and usage |
 
 ---
 
@@ -265,9 +271,9 @@ Built on three orchestration principles:
 
 ---
 
-## Hooks (12 hooks)
+## Hooks (16 hooks)
 
-Production-tested [Claude Code hooks](docs/hooks/README.md) that run automatically during your workflow — blocking secrets, validating content, formatting code, and providing contextual hints. No manual invocation required.
+Production-tested [Claude Code hooks](docs/hooks/README.md) that run automatically during your workflow — blocking secrets, validating content, formatting code, and providing contextual hints. No manual invocation required. Includes 4 standalone validators for CI/CD or pre-commit integration.
 
 ### How Hooks Work
 
@@ -307,6 +313,7 @@ Response shown to user           -- filename-convention-checker.py checks names
 | [UX](hooks/ux/) | 3 | PostToolUse / PreToolUse / UserPromptSubmit | Auto-format code, load context for skills, suggest faster search tools |
 | [Safety](hooks/safety/) | 1 | PermissionRequest | Auto-allow safe bash commands to reduce permission prompts |
 | [Notification](hooks/notification/) | 1 | Notification (Stop) | Desktop notifications when long tasks complete (macOS + Linux) |
+| [Validators](hooks/validators/) | 4 | Standalone | Reusable validation scripts for frontmatter, links, file contents, and new file checks |
 
 ### Individual Hooks
 
@@ -324,6 +331,10 @@ Response shown to user           -- filename-convention-checker.py checks names
 | Search Hint | [`search-hint.sh`](hooks/ux/search-hint.sh) | PreToolUse (Grep) | When Claude uses Grep for simple keyword searches, suggests faster alternatives like SQLite FTS or dedicated search indexes. |
 | Bash Safety | [`bash-safety.py`](hooks/safety/bash-safety.py) | PermissionRequest (Bash) | Auto-allows safe read-only commands (`ls`, `git status`, `npm test`, `cat`) so you don't get prompted for every harmless command. |
 | Desktop Notify | [`desktop-notify.sh`](hooks/notification/desktop-notify.sh) | Notification (Stop) | Sends macOS/Linux desktop notification with sound when Claude finishes a long task. Never miss a completed response again. |
+| Validate File Contains | [`validate_file_contains.py`](hooks/validators/validate_file_contains.py) | Standalone | Validate that files contain required content patterns (e.g. frontmatter, headers). Usable as a PreToolUse or PostToolUse hook. |
+| Validate Frontmatter | [`validate_frontmatter.py`](hooks/validators/validate_frontmatter.py) | Standalone | Validate YAML frontmatter structure against configurable schemas per note type. More thorough than the PostToolUse version. |
+| Validate Links | [`validate_links.py`](hooks/validators/validate_links.py) | Standalone | Validate internal wiki-links and external URLs within Markdown files. Checks for broken references and dead links. |
+| Validate New File | [`validate_new_file.py`](hooks/validators/validate_new_file.py) | Standalone | Validate newly created files meet naming conventions, have required frontmatter, and are in the correct directory. |
 
 ### Quick Start — Copy-Paste Configuration
 
@@ -430,6 +441,35 @@ ALLOWED_DIRECTORIES = ["docs/", "tests/"]
 | bash-safety.py | `SAFE_COMMANDS` — commands to auto-allow |
 
 For detailed documentation: **[Hooks Guide](docs/hooks/README.md)** | [Lifecycle](docs/hooks/hook-lifecycle.md) | [Patterns](docs/hooks/hook-patterns.md) | [Configuration](docs/hooks/configuration.md) | [Installation](docs/hooks/installation.md)
+
+---
+
+## Tools
+
+### boxes-cli
+
+A YAML-to-SVG/PNG diagram renderer using [ELK.js](https://www.eclipse.org/elk/) for hierarchical layout. Define system diagrams in a simple YAML notation and render to SVG or PNG with automatic layout.
+
+```bash
+cd tools/boxes-cli
+npm install
+node bin/boxes.mjs render input.yaml -o output.svg
+node bin/boxes.mjs render input.yaml -o output.png --format png
+```
+
+**Dependencies:** elkjs, js-yaml, sharp, commander
+
+See [`tools/boxes-cli/README.md`](tools/boxes-cli/README.md) for full documentation and YAML format reference.
+
+---
+
+## Agents
+
+### Meta-Agent
+
+A specialised Claude agent definition for creating new skills and agents from documentation. Lives in [`agents/meta-agent.md`](agents/meta-agent.md) — copy to `.claude/agents/` to use.
+
+The meta-agent analyses existing documentation, code, and patterns to generate well-structured skill files with proper frontmatter, agent team configuration, and output format definitions.
 
 ---
 

@@ -1,6 +1,6 @@
 # Skills Reference
 
-Quick-reference card for all 37 skills across 8 categories. For detailed agent team patterns, see the [Agent Teams Guide](agent-teams-guide.md).
+Quick-reference card for all 42 skills across 8 categories. For detailed agent team patterns, see the [Agent Teams Guide](agent-teams-guide.md).
 
 ---
 
@@ -17,7 +17,7 @@ Quick-reference card for all 37 skills across 8 categories. For detailed agent t
 | [Cost Analysis](../skills/architecture/cost-analysis.md) | `/cost-analysis` | 3 | Sonnet | Analyse infrastructure, licensing, and operational costs; identify savings |
 | [Dependency Graph](../skills/architecture/dependency-graph.md) | `/dependency-graph` | — | Sonnet | Visualise system dependencies with colour-coded criticality in Mermaid |
 
-## Content Processing (8 skills)
+## Content Processing (10 skills)
 
 | Skill | Command | Agents | Model | Description |
 |-------|---------|--------|-------|-------------|
@@ -29,6 +29,8 @@ Quick-reference card for all 37 skills across 8 categories. For detailed agent t
 | [Article](../skills/content-processing/article.md) | `/article` | — | Haiku | Quick article capture with summary, key quotes, and relevance scoring |
 | [Book Notes](../skills/content-processing/book-notes.md) | `/book-notes` | 3 | Sonnet | Create book notes with parallel extraction and optional knowledge compounding via spawned Concept/Pattern/Theme notes |
 | [Document Extract](../skills/content-processing/document-extract.md) | `/document-extract` | — | Sonnet | Extract from any format (PDF, DOCX, HTML, CSV) with auto-detection |
+| [CSV to Page](../skills/content-processing/csv-to-page.md) | `/csv-to-page` | — | Sonnet | Convert CSV data to structured Markdown notes with frontmatter |
+| [De-AI-ify](../skills/content-processing/de-ai-ify.md) | `/de-ai-ify` | — | Sonnet | Remove AI-generated phrasing and rewrite in natural, human voice |
 
 ## Diagramming (3 skills)
 
@@ -40,7 +42,7 @@ Quick-reference card for all 37 skills across 8 categories. For detailed agent t
 
 For the theory behind the diagramming skills, see [Why Your AI-Generated Diagrams Look Terrible](blog-post.md).
 
-## Vault Health (6 skills)
+## Vault Health (9 skills)
 
 | Skill | Command | Agents | Model | Description |
 |-------|---------|--------|-------|-------------|
@@ -50,6 +52,9 @@ For the theory behind the diagramming skills, see [Why Your AI-Generated Diagram
 | [Auto-Tag](../skills/vault-health/auto-tag.md) | `/auto-tag` | N | Haiku | Batch auto-tag notes using type-based rules and customisable keyword-to-tag mapping tables |
 | [Auto-Summary](../skills/vault-health/auto-summary.md) | `/auto-summary` | N | Haiku | Batch-generate one-line `summary` fields with type-specific patterns and quality validation rules |
 | [Link Checker](../skills/vault-health/link-checker.md) | `/link-checker` | N | Haiku | Validate external URLs with curl-based checking, frontmatter status tracking, and cross-reference verification |
+| [Rename](../skills/vault-health/rename.md) | `/rename` | — | Sonnet | Safely rename notes with automatic backlink updates across the vault |
+| [Startup Diagnostic](../skills/vault-health/startup-diagnostic.md) | `/startup-diagnostic` | — | Sonnet | Run vault health checks on session start — stale notes, broken links, orphans |
+| [Check Weblinks](../skills/vault-health/check-weblinks.md) | `/check-weblinks` | — | Haiku | Validate external URLs in frontmatter and note body with status reporting |
 
 ## Scoring (2 skills)
 
@@ -94,13 +99,13 @@ For the theory behind the diagramming skills, see [Why Your AI-Generated Diagram
 | **Fan-Out/Fan-In** | 13 | 3-5 (fixed) | Sonnet or Haiku | 3-4× |
 | **Batch Processing** | 3 | N (scales with input) | Haiku | 4-9× (scales with batch count) |
 | **Triage + Selective** | 1 | N + selective | Haiku → Sonnet | 2-3× time, 60-80% cost saving |
-| **No agents** | 20 | 0 | — | 1× (sequential) |
+| **No agents** | 25 | 0 | — | 1× (sequential) |
 
 ### Skills by Agent Count
 
 | Agents | Skills |
 |--------|--------|
-| 0 | `/adr`, `/nfr-capture`, `/dependency-graph`, `/pdf-extract`, `/pptx-extract`, `/youtube-analyze`, `/weblink`, `/article`, `/document-extract`, `/diagram`, `/c4-diagram`, `/exec-summary`, `/voice-meeting`, `/email-capture`, `/summarize`, `/find-related`, `/find-decisions`, `/timeline`, `/skill-creator` |
+| 0 | `/adr`, `/nfr-capture`, `/dependency-graph`, `/pdf-extract`, `/pptx-extract`, `/youtube-analyze`, `/weblink`, `/article`, `/document-extract`, `/csv-to-page`, `/de-ai-ify`, `/diagram`, `/c4-diagram`, `/exec-summary`, `/voice-meeting`, `/email-capture`, `/summarize`, `/find-related`, `/find-decisions`, `/timeline`, `/skill-creator`, `/rename`, `/startup-diagnostic`, `/check-weblinks` |
 | 3 | `/scenario-compare`, `/nfr-review`, `/cost-analysis`, `/broken-links`, `/book-notes`, `/meeting-notes` |
 | 4 | `/impact-analysis`, `/score-document`, `/project-report`, `/diagram-review`, `/orphan-finder` |
 | 5 | `/quality-report`, `/architecture-report`, `/weekly-summary` |

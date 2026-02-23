@@ -28,25 +28,24 @@ VALID_HIERARCHIES = {
         "platform", "identity", "analytics", "compliance", "infrastructure"
     ],
     "project": [
-        "axia", "caerus", "dispax-ai", "cyber-uplift", "odie",
-        "mro-pro", "777x", "rfid-scanners", "ecp", "snapon", "datasphere"
+        # Customise: Add your project slugs here
+        # e.g. "my-project", "data-migration", "platform-upgrade"
         # Note: New projects can be added - this list is not exhaustive
     ],
     "technology": [
         # Platforms & Cloud
-        "aws", "azure", "sap", "btp", "ui5", "datasphere", "s4hana",
+        "aws", "azure", "sap", "gcp",
         # Data & Integration
-        "kafka", "snowflake", "mq", "api", "kong", "axway",
+        "kafka", "snowflake", "api", "graphql", "rest",
         # AI & ML
         "bedrock", "langchain", "ai", "ml",
         # Databases
-        "oracle", "postgresql", "redis", "dynamodb",
+        "oracle", "postgresql", "redis", "dynamodb", "mongodb",
         # Infrastructure
         "kubernetes", "docker", "terraform", "lambda",
-        # Applications
-        "amos", "ews", "mro-software", "saas",
         # Languages/Frameworks
         "python", "javascript", "typescript", "java", "go", "rust"
+        # Customise: Add your technology tags here
     ],
     "type": [
         "adr", "system", "scenario", "integration", "data-source", "data-asset",
