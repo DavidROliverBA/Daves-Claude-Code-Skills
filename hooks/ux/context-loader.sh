@@ -1,120 +1,55 @@
 #!/bin/bash
-# Skill Context Loader Hook
-# Detects skill commands and outputs relevant context files
-# Used by UserPromptSubmit hook to inject context before skill execution
-#
+# Auto-load context files based on skill commands and entity names in prompt.
 # Hook Type: UserPromptSubmit
-# Input: JSON via stdin with "prompt" field
-# Output: JSON with additionalContext field (or empty for no context)
+#
+# Loads relevant context files when the user's prompt mentions
+# skills, entities, or domain topics that have matching context files.
 
-set -e
-
-# Absolute path required — hooks fire regardless of CWD, and relative paths
-# fail with "No such file or directory" during cross-repo work.
-VAULT_ROOT="."
+# Get vault root from environment or use CWD
+VAULT_ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 CONTEXT_DIR="$VAULT_ROOT/.claude/context"
-CONTEXTS_TO_LOAD=()
 
-# Read JSON input from stdin
-INPUT=$(cat)
+# Exit if no context directory
+[[ ! -d "$CONTEXT_DIR" ]] && exit 0
 
-# Extract the prompt from JSON input
-PROMPT=$(echo "$INPUT" | jq -r '.userPrompt // empty')
+# Read the user prompt from stdin
+PROMPT=$(cat)
 
-# Exit early if no prompt - output empty JSON to satisfy parser
-if [[ -z "$PROMPT" ]]; then
-    echo '{}'
-    exit 0
+# Auto-load context based on keywords
+LOADED=""
+
+# Check for architecture-related prompts
+if [[ "$PROMPT" =~ /adr|/architecture|/compliance|/hld|/nfr|ADR|architecture ]]; then
+    [[ -f "$CONTEXT_DIR/architecture.md" ]] && LOADED="$LOADED architecture.md"
 fi
 
-# Function to queue a context file for loading
-queue_context() {
-    local file="$CONTEXT_DIR/$1"
-    if [[ -f "$file" ]]; then
-        CONTEXTS_TO_LOAD+=("$file")
-    fi
-}
-
-# Detect skill patterns and queue appropriate context
-# Using lowercase comparison for case-insensitivity
-PROMPT_LOWER=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
-
-# People-related skills
-if [[ "$PROMPT_LOWER" =~ /person|/meeting ]]; then
-    queue_context "people.md"
+# Check for project-specific prompts
+if [[ "$PROMPT" =~ /project|project|programme ]]; then
+    [[ -f "$CONTEXT_DIR/projects.md" ]] && LOADED="$LOADED projects.md"
 fi
 
-# Project-related skills
-if [[ "$PROMPT_LOWER" =~ /project-status|/timeline|/task|/sync-notion ]]; then
-    queue_context "projects.md"
+# Check for technology prompts
+if [[ "$PROMPT" =~ /system|technology|platform|infrastructure ]]; then
+    [[ -f "$CONTEXT_DIR/technology.md" ]] && LOADED="$LOADED technology.md"
 fi
 
-# Architecture and decisions
-if [[ "$PROMPT_LOWER" =~ /adr|/find-decisions|/incubator ]]; then
-    queue_context "architecture.md"
+# Check for people/meeting prompts
+if [[ "$PROMPT" =~ /meeting|/person|attendees|stakeholder ]]; then
+    [[ -f "$CONTEXT_DIR/people.md" ]] && LOADED="$LOADED people.md"
 fi
 
-# Technology-related skills
-if [[ "$PROMPT_LOWER" =~ /weblink|/youtube ]]; then
-    queue_context "technology.md"
+# Check for acronyms
+if [[ "$PROMPT" =~ [A-Z]{3,} ]]; then
+    [[ -f "$CONTEXT_DIR/acronyms.md" ]] && LOADED="$LOADED acronyms.md"
 fi
 
-# Related/search - load multiple contexts for comprehensive search
-if [[ "$PROMPT_LOWER" =~ /related ]]; then
-    queue_context "projects.md"
-    queue_context "people.md"
-    queue_context "technology.md"
+# Check for organisation prompts
+if [[ "$PROMPT" =~ vendor|partner|supplier|organisation ]]; then
+    [[ -f "$CONTEXT_DIR/organisations.md" ]] && LOADED="$LOADED organisations.md"
 fi
 
-# Summarize - may need project context
-if [[ "$PROMPT_LOWER" =~ /summarize ]]; then
-    queue_context "projects.md"
-fi
-
-# Organisation-related queries (case-sensitive for proper nouns)
-if [[ "$PROMPT" =~ Boeing|SAP|Collins|Axway|Swiss-AS ]]; then
-    queue_context "organisations.md"
-fi
-
-# Acronym detection - common BA/aviation terms (case-sensitive)
-if [[ "$PROMPT" =~ ODIE|EWS|BTP|CMS|EFB|CAMO|MRO|AMOS|AXIA ]]; then
-    queue_context "acronyms.md"
-fi
-
-# If no contexts to load, output empty JSON and exit
-if [[ ${#CONTEXTS_TO_LOAD[@]} -eq 0 ]]; then
-    echo '{}'
-    exit 0
-fi
-
-# Remove duplicates from the array
-UNIQUE_CONTEXTS=($(printf '%s\n' "${CONTEXTS_TO_LOAD[@]}" | sort -u))
-
-# Build the context content
-CONTEXT_CONTENT=""
-for file in "${UNIQUE_CONTEXTS[@]}"; do
-    if [[ -f "$file" ]]; then
-        CONTEXT_CONTENT+="
-<!-- Auto-loaded context: $(basename "$file") -->
-$(cat "$file")
-<!-- End: $(basename "$file") -->
-"
-    fi
-done
-
-# If we have context to add, output it as JSON
-if [[ -n "$CONTEXT_CONTENT" ]]; then
-    # Escape the content for JSON (handle newlines, quotes, backslashes)
-    ESCAPED_CONTENT=$(echo "$CONTEXT_CONTENT" | jq -Rs .)
-
-    cat << EOF
-{
-  "hookSpecificOutput": {
-    "hookEventName": "UserPromptSubmit",
-    "additionalContext": $ESCAPED_CONTENT
-  }
-}
-EOF
+if [[ -n "$LOADED" ]]; then
+    echo "Auto-loaded context:$LOADED"
 fi
 
 exit 0

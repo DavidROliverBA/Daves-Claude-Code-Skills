@@ -53,6 +53,8 @@ REQUIRED_FIELDS = {
     "Threat": ["type", "title"],
     "Framework": ["type", "title"],
     "Tool": ["type", "title"],
+    "HLD": ["type", "title"],
+    "LLD": ["type", "title"],
     # Legacy types (still valid but consolidated)
     "Book": ["type", "title"],
     "YouTube": ["type", "title", "url"],
@@ -301,6 +303,8 @@ def validate_frontmatter(frontmatter: dict, file_path: str) -> list[str]:
         "Tool": "Tool - ",
         "Objective": "Objective - ",
         "Article": "Article - ",
+        "HLD": "HLD - ",
+        "LLD": "LLD - ",
     }
 
     if note_type in expected_prefixes:
@@ -340,7 +344,7 @@ def main():
     # Hooks fire for ALL Edit/Write operations regardless of target repo.
     # When working cross-repo (e.g. /tmp/claude/), skip silently to avoid
     # spurious "No frontmatter found" warnings on non-vault files.
-    VAULT_ROOT = "."
+    VAULT_ROOT = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
     if not file_path.startswith(VAULT_ROOT):
         sys.exit(0)
 

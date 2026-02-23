@@ -114,7 +114,7 @@ def check_link_exists(link_target: str, vault_notes: set[str]) -> bool:
         # Nodes
         "Concept - ", "Pattern - ", "Capability - ", "Theme - ", "Weblink - ",
         "Book - ", "Research - ", "YouTube - ", "Threat - ", "Principle - ",
-        "Framework - ", "Tool - ", "Article - ",
+        "Framework - ", "Tool - ", "Article - ", "Reference - ", "HLD - ", "LLD - ",
         # Events
         "Meeting - ", "Project - ", "Task - ", "ADR - ", "Email - ", "Trip - ",
         "Daily - ", "Incubator - ", "Workstream - ", "Forum - ", "FormSubmission - ",
@@ -177,7 +177,7 @@ def main():
     # Hooks fire for ALL Edit/Write operations regardless of target repo.
     # When working cross-repo (e.g. /tmp/claude/), skip silently to avoid
     # spurious broken-link warnings on non-vault files.
-    VAULT_ROOT = "."
+    VAULT_ROOT = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
     if not file_path.startswith(VAULT_ROOT):
         sys.exit(0)
 

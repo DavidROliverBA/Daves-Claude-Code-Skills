@@ -45,6 +45,8 @@ FILENAME_CONVENTIONS = {
     "Threat": ("Threat - ", "root", "Threat - {{Title}}.md"),
     "Framework": ("Framework - ", "root", "Framework - {{Title}}.md"),
     "Tool": ("Tool - ", "root", "Tool - {{Title}}.md"),
+    "HLD": ("HLD - ", "root", "HLD - {{Title}}.md"),
+    "LLD": ("LLD - ", "root", "LLD - {{Title}}.md"),
     # Current ontology - Navigation (root with _ prefix)
     "MOC": ("_MOC - ", "root", "_MOC - {{Scope}}.md"),
     "Dashboard": ("_Dashboard - ", "root", "_Dashboard - {{Scope}}.md"),
@@ -196,7 +198,7 @@ def main():
     # Hooks fire for ALL Edit/Write operations regardless of target repo.
     # When working cross-repo (e.g. /tmp/claude/), skip silently to avoid
     # spurious naming convention warnings on non-vault files.
-    VAULT_ROOT = "."
+    VAULT_ROOT = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
     if not file_path.startswith(VAULT_ROOT):
         sys.exit(0)
 

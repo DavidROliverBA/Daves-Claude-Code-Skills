@@ -105,7 +105,7 @@ ALLOWED_DIRECTORIES = [
     ".claude/schemas/",  # JSON schemas (pattern.schema.json, etc.)
     ".claude/hooks/",  # Hook scripts
     ".claude/scripts/",  # Utility scripts
-    "Secrets/",  # Vault secrets folder (gitignored, synced via Obsidian Sync only)
+    # Add your vault-specific directories here
 ]
 
 # File prefixes that are allowed (task/concept notes about credentials, not credentials)
