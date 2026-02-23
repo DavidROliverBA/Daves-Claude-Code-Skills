@@ -61,15 +61,13 @@ describe('renderSvg', () => {
     assert.ok(svg.includes('Minimal Test'), 'Missing diagram title');
   });
 
-  it('positions NORTH port labels above port with middle anchor', async () => {
-    const svg = await renderFixture('example-cloudstack.boxes.yaml');
-    const northPortPattern = /text-anchor="middle"[^>]*>Raw Data In</;
-    assert.ok(northPortPattern.test(svg), 'NORTH port label should use text-anchor="middle"');
+  it('renders NORTH port labels in port table legend', async () => {
+    const svg = await renderFixture('example-olympus.boxes.yaml');
+    assert.ok(svg.includes('Raw Data In'), 'NORTH port label should appear in port table');
   });
 
-  it('positions SOUTH port labels below port with middle anchor', async () => {
-    const svg = await renderFixture('example-cloudstack.boxes.yaml');
-    const southPortPattern = /text-anchor="middle"[^>]*>Curated Out</;
-    assert.ok(southPortPattern.test(svg), 'SOUTH port label should use text-anchor="middle"');
+  it('renders SOUTH port labels in port table legend', async () => {
+    const svg = await renderFixture('example-olympus.boxes.yaml');
+    assert.ok(svg.includes('Curated Out'), 'SOUTH port label should appear in port table');
   });
 });

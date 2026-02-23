@@ -20,11 +20,11 @@ describe('toElkGraph', () => {
     assert.equal(elk.layoutOptions['elk.direction'], 'RIGHT');
     assert.equal(elk.layoutOptions['elk.edgeRouting'], 'ORTHOGONAL');
     assert.equal(elk.layoutOptions['elk.hierarchyHandling'], 'INCLUDE_CHILDREN');
-    assert.equal(elk.layoutOptions['elk.spacing.nodeNode'], '45');
-    assert.equal(elk.layoutOptions['elk.spacing.edgeNode'], '30');
+    assert.equal(elk.layoutOptions['elk.spacing.nodeNode'], '40');
+    assert.equal(elk.layoutOptions['elk.spacing.edgeNode'], '35');
     assert.equal(
       elk.layoutOptions['elk.layered.spacing.nodeNodeBetweenLayers'],
-      '70'
+      '160'
     );
     assert.equal(
       elk.layoutOptions['elk.layered.crossingMinimization.strategy'],
@@ -35,9 +35,9 @@ describe('toElkGraph', () => {
       'BRANDES_KOEPF'
     );
     // Layout tuning options
-    assert.equal(elk.layoutOptions['elk.spacing.edgeEdge'], '18');
-    assert.equal(elk.layoutOptions['elk.layered.spacing.edgeNodeBetweenLayers'], '35');
-    assert.equal(elk.layoutOptions['elk.layered.spacing.edgeEdgeBetweenLayers'], '25');
+    assert.equal(elk.layoutOptions['elk.spacing.edgeEdge'], '25');
+    assert.equal(elk.layoutOptions['elk.layered.spacing.edgeNodeBetweenLayers'], '50');
+    assert.equal(elk.layoutOptions['elk.layered.spacing.edgeEdgeBetweenLayers'], '30');
     assert.equal(elk.layoutOptions['elk.layered.crossingMinimization.greedySwitchHierarchical.type'], 'TWO_SIDED');
     assert.equal(elk.layoutOptions['elk.layered.compaction.postCompaction.strategy'], 'EDGE_LENGTH');
     assert.equal(elk.layoutOptions['elk.layered.nodePlacement.bk.fixedAlignment'], 'BALANCED');
