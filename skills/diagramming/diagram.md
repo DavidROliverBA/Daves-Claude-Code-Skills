@@ -216,20 +216,20 @@ For Mermaid/PlantUML formats: reorder declarations to match data flow, add direc
 
 ## Examples
 
-### Example 1: C4 Context Diagram for ODIE
+### Example 1: C4 Context Diagram for DataHub
 
 ```
 /diagram c4-context
 
-Scope: ODIE (Data Integration Platform)
+Scope: DataHub (Data Integration Platform)
 Systems: SAP, Kafka, Snowflake, Kong
 Color scheme: classic
-Output: Canvas - ODIE C4 Context.md
+Output: Canvas - DataHub C4 Context.md
 ```
 
-**Result:** Creates `Canvas - ODIE C4 Context.md` with C4 Level 1 diagram showing:
+**Result:** Creates `Canvas - DataHub C4 Context.md` with C4 Level 1 diagram showing:
 - External actors (users, partners)
-- ODIE as central system
+- DataHub as central system
 - SAP (source)
 - Snowflake (destination)
 - Kong (API access)
@@ -241,7 +241,7 @@ Output: Canvas - ODIE C4 Context.md
 /diagram data-flow
 
 Scope: SAP to Snowflake Real-time Integration
-Systems: SAP, Kafka, ODIE, Snowflake
+Systems: SAP, Kafka, DataHub, Snowflake
 Styling: vibrant
 Output: Concept - SAP to Snowflake Real-time Flow.md
 ```
@@ -249,7 +249,7 @@ Output: Concept - SAP to Snowflake Real-time Flow.md
 **Result:** Creates `Concept - SAP to Snowflake Real-time Flow.md` showing:
 - SAP transaction generation
 - Kafka event publishing
-- ODIE stream processing
+- DataHub stream processing
 - Snowflake real-time table updates
 - Data quality checks at each stage
 - Error handling paths
@@ -374,7 +374,7 @@ The skill generates:
    title: "System Landscape"
    diagramType: system-landscape
    scope: Enterprise
-   systems: [SAP, ODIE, Snowflake, Kong, AWS]
+   systems: [SAP, DataHub, Snowflake, Kong, AWS]
    latencyTarget: null
    refreshedDate: 2026-01-14
    ```
@@ -433,7 +433,7 @@ If diagram generation fails:
 These Canvas files were generated using the `/diagram` skill:
 
 - `[[Canvas - System Landscape]]` - All enterprise systems
-- `[[Canvas - C4 Context Diagram]]` - ODIE context
+- `[[Canvas - C4 Context Diagram]]` - DataHub context
 - `[[Canvas - Data Flow Diagram]]` - SAP to Snowflake flow
 - `[[Canvas - AWS Architecture]]` - Production infrastructure
 - `[[Canvas - Scenario Comparison]]` - Scenario alternatives
