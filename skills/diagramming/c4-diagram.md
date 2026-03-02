@@ -25,7 +25,7 @@ Use `/c4-diagram` when you need to generate C4 architecture diagrams from the st
 
 | Argument      | Required | Description                                               |
 | ------------- | -------- | --------------------------------------------------------- |
-| `system-name` | Yes      | Name of the System note (e.g., `ODIE`, `AMOS`, `SAP BTP`) |
+| `system-name` | Yes      | Name of the System note (e.g., `DataHub`, `ERPSystem`, `CloudPlatform`) |
 | `level`       | No       | `context` (L1, default), `container` (L2), or `both`      |
 | `format`      | No       | `mermaid` (default), `flowchart`, or `plantuml`            |
 
@@ -51,11 +51,11 @@ Use `/c4-diagram` when you need to generate C4 architecture diagrams from the st
 ### Examples
 
 ```
-/c4-diagram ODIE
-/c4-diagram AMOS container
-/c4-diagram SAP BTP both
-/c4-diagram ODIE container flowchart
-/c4-diagram AMOS both plantuml
+/c4-diagram DataHub
+/c4-diagram ERPSystem container
+/c4-diagram CloudPlatform both
+/c4-diagram DataHub container flowchart
+/c4-diagram ERPSystem both plantuml
 ```
 
 ## Instructions
@@ -89,7 +89,7 @@ Generate the Mermaid code following these **best practices**:
 - **Order**: Persons → System Boundary → External Systems → Relationships → Config
 - **Always include** `UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")` at the end
 - **Alias naming**: Use camelCase without spaces (e.g., `dataEngineer`, `sapS4hana`)
-- **Strip wiki-link syntax** from target names (e.g., `[[System - ODIE]]` → `ODIE`)
+- **Strip wiki-link syntax** from target names (e.g., `[[System - DataHub]]` → `DataHub`)
 
 #### Layout Science
 
@@ -504,6 +504,6 @@ Use `/c4-diagram` for documentation that lives in the vault. Use `/diagram` for 
 
 **Invoke with:** `/c4-diagram <system-name> [context|container|both] [mermaid|flowchart|plantuml]`
 
-**Example:** `/c4-diagram ODIE both` → Generates C4 Context and Container diagrams from ODIE's frontmatter
+**Example:** `/c4-diagram DataHub both` → Generates C4 Context and Container diagrams from DataHub's frontmatter
 
-**Example:** `/c4-diagram AMOS container plantuml` → Generates PlantUML Container diagram with directional hints
+**Example:** `/c4-diagram ERPSystem container plantuml` → Generates PlantUML Container diagram with directional hints

@@ -15,7 +15,7 @@ Perform comprehensive analysis of architecture diagrams, flowcharts, and technic
 /diagram-review <image-path>
 /diagram-review Attachments/architecture-diagram.png
 /diagram-review Attachments/data-flow.png --type "C4"
-/diagram-review Attachments/process-flow.png --project "Caerus"
+/diagram-review Attachments/process-flow.png --project "ProjectAlpha"
 ```
 
 ## Instructions
@@ -82,7 +82,7 @@ Task: Identify technologies and integrations
 - Identify cloud services (AWS, Azure, SAP)
 - Note databases, queues, APIs
 - Map external system integrations
-- Identify known BA systems (SAP EWS, AMOS, ODIE, etc.)
+- Identify known systems referenced in the diagram
 Return: Technology inventory with integration points
 ```
 
