@@ -28,24 +28,25 @@ VALID_HIERARCHIES = {
         "platform", "identity", "analytics", "compliance", "infrastructure"
     ],
     "project": [
-        # Customise: Add your project slugs here
-        # e.g. "my-project", "data-migration", "platform-upgrade"
+        "axia", "caerus", "dispax-ai", "cyber-uplift", "odie",
+        "mro-pro", "777x", "rfid-scanners", "ecp", "snapon", "datasphere"
         # Note: New projects can be added - this list is not exhaustive
     ],
     "technology": [
         # Platforms & Cloud
-        "aws", "azure", "sap", "gcp",
+        "aws", "azure", "sap", "btp", "ui5", "datasphere", "s4hana",
         # Data & Integration
-        "kafka", "snowflake", "api", "graphql", "rest",
+        "kafka", "snowflake", "mq", "api", "kong", "axway",
         # AI & ML
         "bedrock", "langchain", "ai", "ml",
         # Databases
-        "oracle", "postgresql", "redis", "dynamodb", "mongodb",
+        "oracle", "postgresql", "redis", "dynamodb",
         # Infrastructure
         "kubernetes", "docker", "terraform", "lambda",
+        # Applications
+        "amos", "ews", "mro-software", "saas",
         # Languages/Frameworks
         "python", "javascript", "typescript", "java", "go", "rust"
-        # Customise: Add your technology tags here
     ],
     "type": [
         "adr", "system", "scenario", "integration", "data-source", "data-asset",
@@ -236,7 +237,7 @@ def main():
     # Hooks fire for ALL Edit/Write operations regardless of target repo.
     # When working cross-repo (e.g. /tmp/claude/), skip silently to avoid
     # spurious tag warnings on non-vault files.
-    VAULT_ROOT = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
+    VAULT_ROOT = "."
     if not file_path.startswith(VAULT_ROOT):
         sys.exit(0)
 

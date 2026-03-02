@@ -344,7 +344,7 @@ def main():
     # Hooks fire for ALL Edit/Write operations regardless of target repo.
     # When working cross-repo (e.g. /tmp/claude/), skip silently to avoid
     # spurious "No frontmatter found" warnings on non-vault files.
-    VAULT_ROOT = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
+    VAULT_ROOT = "."
     if not file_path.startswith(VAULT_ROOT):
         sys.exit(0)
 

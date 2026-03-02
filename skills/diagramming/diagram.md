@@ -110,20 +110,97 @@ The skill:
 4. Saves to vault as Canvas or Concept note
 5. Links to related System/Integration notes
 
-### Phase 4: Validation Checklist
+### Phase 4: Validation Gate
 
-After rendering, validate against these criteria:
+After rendering, assess the diagram against each criterion and output a structured validation table with concrete results:
 
-| Criterion                     | Target                           | How to Check                             |
-| ----------------------------- | -------------------------------- | ---------------------------------------- |
-| **Edge crossings**            | <5 for complex, 0 for simple     | Trace each relationship path visually    |
-| **Visual hierarchy**          | System boundary most prominent   | Is the boundary immediately identifiable? |
-| **Grouping**                  | Related elements close together  | Do tiers/layers appear as distinct groups? |
-| **Flow direction**            | Consistent L→R or T→B            | Does data flow follow one direction?     |
-| **Relationship traceability** | Can follow each line             | Trace each connection without confusion  |
-| **Abstraction level**         | One level per diagram            | No database tables on container diagrams |
+```markdown
+## Diagram Validation
 
-If any criterion fails, revise the diagram before presenting to the user. For Mermaid: reorder declarations to match data flow. For PlantUML: add directional hints (`Rel_Down`, `Lay_Right`). See `/c4-diagram` skill for detailed refinement guidance.
+| Criterion | Target | Result | Status |
+|-----------|--------|--------|--------|
+| Edge crossings | <5 complex, 0 simple | {count} | {PASS/FAIL} |
+| Visual hierarchy | Boundary most prominent | {assessment} | {PASS/FAIL} |
+| Grouping | Related elements proximate | {assessment} | {PASS/FAIL} |
+| Flow direction | Consistent L-to-R or T-to-B | {direction} | {PASS/FAIL} |
+| Traceability | Can follow each line | {assessment} | {PASS/FAIL} |
+| Abstraction | One level per diagram | {level} | {PASS/FAIL} |
+```
+
+Replace `{count}`, `{assessment}`, `{direction}`, and `{level}` with the actual findings for the generated diagram. Every `/diagram` invocation must include this table in its output.
+
+#### How to Assess Each Criterion
+
+**CRITICAL: You must read the rendered PNG back using the Read tool and visually inspect it.** Do not assess criteria from the Python/Mermaid source alone — valid code frequently produces poor layouts.
+
+| Criterion                     | How to Check (from the rendered PNG)                                         |
+| ----------------------------- | ---------------------------------------------------------------------------- |
+| **Edge crossings**            | Trace each relationship path visually — do any lines cross confusingly?      |
+| **Visual hierarchy**          | Is the `Cluster` boundary immediately identifiable as the primary element?   |
+| **Grouping**                  | Do elements within the same `Cluster` appear as distinct tiers/layers?       |
+| **Flow direction**            | Does data flow follow the declared `direction` parameter (TB or LR)?         |
+| **Relationship traceability** | Can each `Edge` be followed from source to destination without confusion?    |
+| **Abstraction level**         | Does the diagram mix levels (e.g., database tables on a container diagram)?  |
+| **Edge label readability**    | Are all edge labels readable at normal zoom? Max ~30 characters per line.    |
+| **Path distinguishability**   | If multiple data flow paths exist, can you tell them apart at a glance?      |
+| **Node placement**            | Are related nodes close together? Are any nodes orphaned or visually adrift? |
+
+#### Iterative Refinement (Visual Review Loop)
+
+After rendering, **read the PNG back** using the Read tool and assess against every criterion above. If any criterion fails, revise and re-render. Repeat until all pass. Do not present to the user until the loop completes with all-PASS.
+
+Apply one or more of the following techniques for the Python `diagrams` library:
+
+- **Edge crossings / Traceability** — Reorder node declarations to match the tier hierarchy (Actors → Presentation → Services → Data → External). The Graphviz engine positions nodes based on declaration order, so aligning code order with visual order reduces crossings.
+- **Visual hierarchy / Grouping** — Add or restructure `Cluster` blocks to group related elements by tier or domain. Nested clusters create visual nesting that reinforces boundaries.
+- **Flow direction** — Change the `direction` parameter (`"TB"`, `"LR"`) or restructure `Edge` connections so the primary data flow follows a single consistent direction.
+- **Abstraction** — If mixed levels are detected, split the diagram into separate scripts at different abstraction levels (e.g., one context-level diagram and one container-level diagram).
+- **Edge label readability** — Shorten labels to ~30 chars per line max. Use 2-3 short lines rather than one long line. Increase `fontsize` on Edge styles if labels look small in the rendered PNG.
+- **Orphaned nodes** — If a node looks visually adrift, move it into a nearby Cluster or reposition it closer to its connected nodes.
+- **Path distinguishability** — When a diagram has 2+ distinct data flow paths, assign each a different `Edge` colour and `penwidth`. Use a legend or consistent naming (Path 1, Path 2) so the reader can follow each flow independently.
+
+### Design Rules
+
+These rules prevent common layout mistakes. Apply them **before** generating the first render:
+
+#### Box vs Label: What Deserves a Node?
+
+At **C4 context level**, only these should be boxes (nodes):
+- **Systems** (software systems, external services, SaaS platforms)
+- **Actors** (people, roles, user groups)
+- **Devices** (laptops, endpoints, physical hardware)
+
+These should be **edge labels or annotations**, NOT boxes:
+- Authentication mechanisms (IAM roles, OAuth flows, MFA)
+- Network paths (VPC endpoints, NAT gateways at context level, load balancers)
+- Protocols (HTTPS, SMB, SFTP)
+- Policies (firewall rules, SCPs, bucket policies)
+
+**Rule of thumb:** If you can't send it a request or log into it, it's probably a label.
+
+At **C4 container level**, network components (VPC endpoints, load balancers) and IAM roles may become boxes — the abstraction level determines what's a node.
+
+#### Choosing TB vs LR Direction
+
+| Layout pattern | Use `TB` (top-to-bottom) | Use `LR` (left-to-right) |
+|---------------|--------------------------|--------------------------|
+| Single linear flow | Yes | — |
+| Hierarchical (org chart, decision tree) | Yes | — |
+| Two+ parallel output paths | — | Yes — paths branch vertically |
+| Wide system landscape (many peers) | — | Yes |
+| Timeline or sequence | — | Yes |
+
+**Default remains TB**, but switch to LR when the diagram has branching paths — a tall narrow diagram with 10+ vertical nodes is hard to read.
+
+#### Cluster Nesting
+
+- **C4 context level:** Maximum 1 level of clusters (cloud boundaries). No nested sub-clusters — they add visual noise.
+- **C4 container level:** Up to 2 levels (cloud boundary → service group).
+- **C4 component level:** Up to 3 levels if needed.
+
+**Anti-pattern:** Don't create clusters for logical groupings that aren't real boundaries (e.g., "Path 1: Boeing Upload" is a data flow, not a deployment boundary).
+
+For Mermaid/PlantUML formats: reorder declarations to match data flow, add directional hints (`Rel_Down`, `Lay_Right`). See `/c4-diagram` skill for detailed refinement guidance.
 
 ## Format Selection Guide
 
@@ -139,20 +216,20 @@ If any criterion fails, revise the diagram before presenting to the user. For Me
 
 ## Examples
 
-### Example 1: C4 Context Diagram for AlertHub
+### Example 1: C4 Context Diagram for ODIE
 
 ```
 /diagram c4-context
 
-Scope: AlertHub (Data Integration Platform)
+Scope: ODIE (Data Integration Platform)
 Systems: SAP, Kafka, Snowflake, Kong
 Color scheme: classic
-Output: Canvas - AlertHub C4 Context.md
+Output: Canvas - ODIE C4 Context.md
 ```
 
-**Result:** Creates `Canvas - AlertHub C4 Context.md` with C4 Level 1 diagram showing:
+**Result:** Creates `Canvas - ODIE C4 Context.md` with C4 Level 1 diagram showing:
 - External actors (users, partners)
-- AlertHub as central system
+- ODIE as central system
 - SAP (source)
 - Snowflake (destination)
 - Kong (API access)
@@ -164,7 +241,7 @@ Output: Canvas - AlertHub C4 Context.md
 /diagram data-flow
 
 Scope: SAP to Snowflake Real-time Integration
-Systems: SAP, Kafka, AlertHub, Snowflake
+Systems: SAP, Kafka, ODIE, Snowflake
 Styling: vibrant
 Output: Concept - SAP to Snowflake Real-time Flow.md
 ```
@@ -172,7 +249,7 @@ Output: Concept - SAP to Snowflake Real-time Flow.md
 **Result:** Creates `Concept - SAP to Snowflake Real-time Flow.md` showing:
 - SAP transaction generation
 - Kafka event publishing
-- AlertHub stream processing
+- ODIE stream processing
 - Snowflake real-time table updates
 - Data quality checks at each stage
 - Error handling paths
@@ -297,7 +374,7 @@ The skill generates:
    title: "System Landscape"
    diagramType: system-landscape
    scope: Enterprise
-   systems: [SAP, AlertHub, Snowflake, Kong, AWS]
+   systems: [SAP, ODIE, Snowflake, Kong, AWS]
    latencyTarget: null
    refreshedDate: 2026-01-14
    ```
@@ -356,7 +433,7 @@ If diagram generation fails:
 These Canvas files were generated using the `/diagram` skill:
 
 - `[[Canvas - System Landscape]]` - All enterprise systems
-- `[[Canvas - C4 Context Diagram]]` - AlertHub context
+- `[[Canvas - C4 Context Diagram]]` - ODIE context
 - `[[Canvas - Data Flow Diagram]]` - SAP to Snowflake flow
 - `[[Canvas - AWS Architecture]]` - Production infrastructure
 - `[[Canvas - Scenario Comparison]]` - Scenario alternatives
